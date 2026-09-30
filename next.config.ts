@@ -12,7 +12,6 @@ const REDIRECCIONES_CATEGORIA: [string, string][] = [
   ['pantalones', 'streetwear'],
   ['gorras', 'streetwear'],
   ['packs', 'bolsos'],
-  ['perfumes', 'accesorios'],
 ];
 
 const nextConfig: NextConfig = {
