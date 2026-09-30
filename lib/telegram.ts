@@ -1,4 +1,4 @@
-import { construirMensaje, construirPieAlbum, construirResumen, repartirAlbumes, type PedidoPayload, type PresupuestoPayload } from './pedido';
+import { construirPieAlbum, construirResumen, repartirAlbumes, type PresupuestoPayload } from './pedido';
 
 export type EnvioResult = { ok: true } | { ok: false; error: string };
 
@@ -29,25 +29,6 @@ async function enviarConReintento(
     }
   }
   return { ok: false, error: ultimo };
-}
-
-export async function enviarPedido(p: PedidoPayload, opts: Opciones = {}): Promise<EnvioResult> {
-  const fetchImpl = opts.fetchImpl ?? fetch;
-  const token = opts.token ?? process.env.TELEGRAM_BOT_TOKEN ?? '';
-  const chatId = opts.chatId ?? process.env.TELEGRAM_CHAT_ID ?? '';
-  const intentos = opts.intentos ?? 2;
-  if (!token || !chatId) return { ok: false, error: 'no_config' };
-
-  const { text, imageUrl } = construirMensaje(p);
-
-  if (imageUrl) {
-    const foto = await enviarConReintento(fetchImpl, token, 'sendPhoto',
-      { chat_id: chatId, photo: imageUrl, caption: text, parse_mode: 'HTML' }, intentos);
-    if (foto.ok) return { ok: true };
-  }
-
-  return enviarConReintento(fetchImpl, token, 'sendMessage',
-    { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: false }, intentos);
 }
 
 /** Aviso simple al dueño (p. ej. una reseña nueva). No lleva imagen. */
