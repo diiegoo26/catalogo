@@ -1,15 +1,12 @@
 'use client';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
-import BotonTelegram from './BotonTelegram';
-import DatosCliente, { type Datos } from './DatosCliente';
+import BotonAgregar from './BotonAgregar';
+import { useCesta } from './CestaProvider';
 import OpcionesPedido, { OPCIONES_INICIALES, type Opciones } from './OpcionesPedido';
-import { telefonoValido } from '@/lib/cliente';
 import { LIMITE_NOMBRE } from '@/lib/personalizacion';
 import { tallasParaCategoria } from '@/lib/tallas';
 import type { PatchBadge, Player, Variant } from '@/lib/types';
-
-const TELEGRAM_USER = process.env.NEXT_PUBLIC_TELEGRAM_USERNAME; // sin @
 
 const limpiarNombre = (v: string) =>
   v.toUpperCase().replace(/[^A-ZÁÉÍÓÚÜÑ\s'’-]/g, '').slice(0, LIMITE_NOMBRE);
@@ -32,14 +29,12 @@ export default function KitCustomizer({ title, variants, players, patches, image
   const [nombre, setNombre] = useState('');
   const [numero, setNumero] = useState('');
   const [jugadorId, setJugadorId] = useState('');
-  const [aviso, setAviso] = useState(false);
-  const [datos, setDatos] = useState<Datos>({ nombre: '', telefono: '', telegram: '' });
   const [parchesSel, setParchesSel] = useState<string[]>([]);
-
-  const listo = datos.nombre.trim() !== '' && telefonoValido(datos.telefono) && Boolean(opciones.talla);
+  const { agregarItem } = useCesta();
 
   const numeroValido = numero === '' || (Number(numero) >= 1 && Number(numero) <= 99);
   const conImpresion = (nombre.trim() !== '' || numero !== '') && numeroValido;
+  const listo = Boolean(opciones.talla) && numeroValido;
 
   const elegirJugador = (id: string) => {
     setJugadorId(id);
@@ -48,41 +43,21 @@ export default function KitCustomizer({ title, variants, players, patches, image
     if (p) { setNombre(limpiarNombre(p.name)); setNumero(String(p.number)); }
   };
 
-  const pedir = async (): Promise<boolean> => {
-    setAviso(false);
-    const personalizacion = conImpresion && numeroValido
-      ? [nombre && `${nombre}`, numero && `${numero}`, jugadorId ? '(plantilla)' : ''].filter(Boolean).join(' ')
+  const agregar = () => {
+    const personalizacion = conImpresion
+      ? [nombre, numero, jugadorId ? '(plantilla)' : ''].filter(Boolean).join(' ')
       : undefined;
-    const productUrl = window.location.href;
-    try {
-      const r = await fetch('/api/pedido', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          title, productUrl, imageUrl,
-          talla: opciones.talla ?? '', cantidad: opciones.cantidad,
-          color: color ?? undefined,
-          personalizacion,
-          parches: parchesSel.length ? parchesSel : undefined,
-          notas: opciones.notas.trim() || undefined,
-          nombre: datos.nombre.trim(),
-          telefono: datos.telefono.trim(),
-          telegram: datos.telegram.trim() || undefined,
-          hp: '',
-        }),
-      });
-      if (r.ok) return true;
-    } catch { /* cae al respaldo */ }
-
-    if (TELEGRAM_USER) {
-      const text = [`Hola, quiero pedir: ${title}`, opciones.talla && `Talla: ${opciones.talla}`, `Cantidad: ${opciones.cantidad}`,
-        color && `Color: ${color}`, personalizacion && `Personalización: ${personalizacion}`,
-        parchesSel.length && `Parches: ${parchesSel.join(', ')}`,
-        opciones.notas.trim() && `Notas: ${opciones.notas.trim()}`,
-        `Nombre: ${datos.nombre}`, `Teléfono: ${datos.telefono}`, productUrl].filter(Boolean).join('\n');
-      try { await navigator.clipboard.writeText(text); setAviso(true); } catch { /* ignore */ }
-    }
-    return false;
+    agregarItem({
+      title,
+      productUrl: window.location.href,
+      imageUrl,
+      talla: opciones.talla ?? '',
+      cantidad: opciones.cantidad,
+      color: color ?? undefined,
+      personalizacion,
+      parches: parchesSel.length ? parchesSel : undefined,
+      notas: opciones.notas.trim() || undefined,
+    });
   };
 
   return (
@@ -153,16 +128,7 @@ export default function KitCustomizer({ title, variants, players, patches, image
         )}
       </div>
 
-      <DatosCliente valor={datos} onChange={setDatos} />
-      <BotonTelegram onPedir={pedir} resetKey={`${opciones.talla ?? ''}|${opciones.cantidad}|${color ?? ''}|${nombre}|${numero}`}
-        disabled={!listo} label={listo ? 'Pedir por Telegram' : 'Rellena talla, nombre y teléfono'} />      {aviso && (
-        <p className="text-center text-xs text-muted">
-          No se pudo enviar. Mensaje copiado:{' '}
-          <a className="underline" href={`https://t.me/${TELEGRAM_USER}`} target="_blank" rel="noreferrer">
-            pégalo en Telegram
-          </a>.
-        </p>
-      )}
+      <BotonAgregar onAgregar={agregar} disabled={!listo} label={listo ? 'Agregar a la cesta' : 'Elige una talla'} />
     </div>
   );
 }
