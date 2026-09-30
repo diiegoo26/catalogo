@@ -231,3 +231,49 @@ export function validarPresupuesto(raw: unknown): ValidacionPresupuesto {
 
   return { ok: true, presupuesto: { items, cliente, provincia, localidad } };
 }
+
+export function construirPieAlbum(total: number): string {
+  return `🛒 <b>Presupuesto</b> — ${total} ${total === 1 ? 'artículo' : 'artículos'}`;
+}
+
+export function construirResumen(p: PresupuestoPayload): string {
+  const n = p.items.length;
+  const lineas: string[] = [`🛒 <b>Nuevo presupuesto (${n} ${n === 1 ? 'artículo' : 'artículos'})</b>`];
+
+  p.items.forEach((it, i) => {
+    lineas.push('');
+    lineas.push(`${i + 1}. 📦 <b>${escapeHtml(it.title)}</b>`);
+    const opciones = [
+      `Talla: ${escapeHtml(it.talla)}`,
+      it.cantidad ? `Cantidad: ${it.cantidad}` : null,
+      it.color ? `Color: ${escapeHtml(it.color)}` : null,
+    ].filter(Boolean) as string[];
+    if (opciones.length) lineas.push(opciones.join(' · '));
+    if (it.personalizacion) lineas.push(`Personalización: ${escapeHtml(it.personalizacion)}`);
+    if (it.parches?.length) lineas.push(`Parches: ${escapeHtml(it.parches.join(', '))}`);
+    if (it.notas) lineas.push(`📝 Notas: ${escapeHtml(it.notas)}`);
+    lineas.push(`🔗 <a href="${escapeHtml(it.productUrl)}">Ver producto</a>`);
+  });
+
+  lineas.push('');
+  lineas.push(`👤 Cliente: ${escapeHtml(p.cliente.nombre)}`);
+  lineas.push(`📞 <a href="tel:${escapeHtml(p.cliente.telefono.replace(/[^\d+]/g, ''))}">${escapeHtml(p.cliente.telefono)}</a>`);
+  if (p.cliente.telegram) {
+    lineas.push(`✈️ <a href="https://t.me/${escapeHtml(p.cliente.telegram)}">@${escapeHtml(p.cliente.telegram)}</a>`);
+  }
+  lineas.push(`📍 Envío: ${escapeHtml(p.localidad)} (${escapeHtml(p.provincia)}) — el envío es un extra`);
+  return lineas.join('\n');
+}
+
+/** Chunk image URLs into Telegram media groups (2-10 each). A single URL is
+ * returned as a 1-item chunk so the caller can use sendPhoto instead. */
+export function repartirAlbumes(urls: string[], max = 10): string[][] {
+  const grupos: string[][] = [];
+  for (let i = 0; i < urls.length; i += max) grupos.push(urls.slice(i, i + max));
+  const ultimo = grupos[grupos.length - 1];
+  if (grupos.length > 1 && ultimo.length < 2) {
+    const previo = grupos[grupos.length - 2];
+    ultimo.unshift(previo.pop() as string);
+  }
+  return grupos;
+}
