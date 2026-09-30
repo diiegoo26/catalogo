@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Manrope, Space_Grotesk, Space_Mono } from 'next/font/google';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { CestaProvider } from '@/components/CestaProvider';
 import './globals.css';
 
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-grotesk', display: 'swap' });
@@ -27,11 +28,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Saltar al contenido
         </a>
-        <Header />
-        <main id="contenido" className="mx-auto max-w-6xl px-4 py-8">
-          {children}
-        </main>
-        <Footer />
+        <CestaProvider>
+          <Header />
+          <main id="contenido" className="mx-auto max-w-6xl px-4 py-8">
+            {children}
+          </main>
+          <Footer />
+        </CestaProvider>
       </body>
     </html>
   );
