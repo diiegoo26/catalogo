@@ -228,6 +228,22 @@
   animation-delay: 0.08s;
 }
 
+/* Cart drawer entrance: overlay fades, panel slides in from the right. */
+@keyframes kz-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.kz-fade {
+  animation: kz-fade 0.2s ease-out both;
+}
+@keyframes kz-slide-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: none; }
+}
+.kz-slide-in {
+  animation: kz-slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

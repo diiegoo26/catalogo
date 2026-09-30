@@ -7,6 +7,12 @@ describe('tallasParaCategoria', () => {
     expect(tallasParaCategoria('chanclas')).toEqual(TALLAS_CALZADO);
   });
 
+  it('offers foot sizes from 32 to 47', () => {
+    expect(TALLAS_CALZADO).toHaveLength(16);
+    expect(TALLAS_CALZADO[0]).toBe('32');
+    expect(TALLAS_CALZADO.at(-1)).toBe('47');
+  });
+
   it('offers a single size for one-size categories', () => {
     for (const slug of ['accesorios', 'relojes', 'gorras', 'bolsos', 'perfumes']) {
       expect(tallasParaCategoria(slug)).toEqual(['Única']);
