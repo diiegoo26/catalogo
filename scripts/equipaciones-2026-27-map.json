@@ -1,0 +1,587 @@
+{
+ "ac-milan": {
+  "fl_slug": "ac-milan",
+  "name": "AC Milan",
+  "how": "exact"
+ },
+ "arsenal": {
+  "fl_slug": "arsenal",
+  "name": "Arsenal",
+  "how": "exact"
+ },
+ "as-roma": {
+  "fl_slug": "as-roma",
+  "name": "AS Roma",
+  "how": "exact"
+ },
+ "birmingham-city": {
+  "fl_slug": "birmingham-city",
+  "name": "Birmingham City",
+  "how": "exact"
+ },
+ "blackburn-rovers": {
+  "fl_slug": "blackburn-rovers",
+  "name": "Blackburn Rovers",
+  "how": "exact"
+ },
+ "aston-villa": {
+  "fl_slug": "aston-villa",
+  "name": "Aston Villa",
+  "how": "exact"
+ },
+ "atalanta": {
+  "fl_slug": "atalanta",
+  "name": "Atalanta",
+  "how": "exact"
+ },
+ "cardiff-city": {
+  "fl_slug": "cardiff-city",
+  "name": "Cardiff City",
+  "how": "exact"
+ },
+ "derby-county": {
+  "fl_slug": "derby-county",
+  "name": "Derby County",
+  "how": "exact"
+ },
+ "middlesbrough": {
+  "fl_slug": "middlesbrough",
+  "name": "Middlesbrough",
+  "how": "exact"
+ },
+ "preston-north-end": {
+  "fl_slug": "preston-north-end",
+  "name": "Preston North End",
+  "how": "exact"
+ },
+ "sheffield-united": {
+  "fl_slug": "sheffield-united",
+  "name": "Sheffield United",
+  "how": "exact"
+ },
+ "west-bromwich-albion": {
+  "fl_slug": "west-bromwich-albion",
+  "name": "West Bromwich Albion",
+  "how": "exact"
+ },
+ "wrexham": {
+  "fl_slug": "wrexham-afc",
+  "name": "Wrexham",
+  "how": "norm"
+ },
+ "ajax": {
+  "fl_slug": "ajax",
+  "name": "Ajax",
+  "how": "exact"
+ },
+ "feyenoord": {
+  "fl_slug": "feyenoord",
+  "name": "Feyenoord",
+  "how": "exact"
+ },
+ "psv-eindhoven": {
+  "fl_slug": "psv-eindhoven",
+  "name": "PSV Eindhoven",
+  "how": "exact"
+ },
+ "bahia": {
+  "fl_slug": "bahia",
+  "name": "Bahia",
+  "how": "exact"
+ },
+ "botafogo": {
+  "fl_slug": "botafogo",
+  "name": "Botafogo",
+  "how": "exact"
+ },
+ "chapecoense": {
+  "fl_slug": "chapecoense",
+  "name": "Chapecoense",
+  "how": "exact"
+ },
+ "corinthians": {
+  "fl_slug": "corinthians",
+  "name": "Corinthians",
+  "how": "exact"
+ },
+ "coritiba": {
+  "fl_slug": "coritiba",
+  "name": "Coritiba",
+  "how": "exact"
+ },
+ "cruzeiro": {
+  "fl_slug": "cruzeiro",
+  "name": "Cruzeiro",
+  "how": "exact"
+ },
+ "flamengo": {
+  "fl_slug": "flamengo",
+  "name": "Flamengo",
+  "how": "exact"
+ },
+ "fluminense": {
+  "fl_slug": "fluminense",
+  "name": "Fluminense",
+  "how": "exact"
+ },
+ "gremio": {
+  "fl_slug": "gremio",
+  "name": "Grêmio",
+  "how": "exact"
+ },
+ "internacional": {
+  "fl_slug": "sc-internacional",
+  "name": "Internacional",
+  "how": "manual"
+ },
+ "atletico-mineiro": {
+  "fl_slug": "atletico-mineiro",
+  "name": "Atlético Mineiro",
+  "how": "exact"
+ },
+ "palmeiras": {
+  "fl_slug": "palmeiras",
+  "name": "Palmeiras",
+  "how": "exact"
+ },
+ "paranaense": {
+  "fl_slug": "athletico-paranaense",
+  "name": "Athletico Paranaense",
+  "how": "manual"
+ },
+ "remo": {
+  "fl_slug": "club-de-remo",
+  "name": "Remo",
+  "how": "manual"
+ },
+ "santos": {
+  "fl_slug": "santos-fc",
+  "name": "Santos",
+  "how": "manual"
+ },
+ "sao-paulo": {
+  "fl_slug": "sao-paulo",
+  "name": "São Paulo",
+  "how": "exact"
+ },
+ "vasco-da-gama": {
+  "fl_slug": "vasco-da-gama",
+  "name": "Vasco da Gama",
+  "how": "exact"
+ },
+ "club-america": {
+  "fl_slug": "club-america",
+  "name": "Club América",
+  "how": "exact"
+ },
+ "atlas-fc": {
+  "fl_slug": "atlas",
+  "name": "Atlas",
+  "how": "manual"
+ },
+ "athletic-club": {
+  "fl_slug": "athletic-club-bilbao",
+  "name": "Athletic Club",
+  "how": "manual"
+ },
+ "atlante": {
+  "fl_slug": "atlante",
+  "name": "Atlante",
+  "how": "exact"
+ },
+ "chivas-guadalajara": {
+  "fl_slug": "cd-guadalajara",
+  "name": "Chivas Guadalajara",
+  "how": "manual"
+ },
+ "cruz-azul": {
+  "fl_slug": "cruz-azul",
+  "name": "Cruz Azul",
+  "how": "exact"
+ },
+ "monterrey": {
+  "fl_slug": "monterrey",
+  "name": "Monterrey",
+  "how": "exact"
+ },
+ "atletico-de-madrid": {
+  "fl_slug": "atletico-madrid",
+  "name": "Atlético de Madrid",
+  "how": "manual"
+ },
+ "bayer-leverkusen": {
+  "fl_slug": "bayer-leverkusen",
+  "name": "Bayer Leverkusen",
+  "how": "exact"
+ },
+ "bologna": {
+  "fl_slug": "bologna",
+  "name": "Bologna",
+  "how": "exact"
+ },
+ "borussia-dortmund": {
+  "fl_slug": "borussia-dortmund",
+  "name": "Borussia Dortmund",
+  "how": "exact"
+ },
+ "borussia-monchengladbach": {
+  "fl_slug": "borussia-monchengladbach",
+  "name": "Borussia Mönchengladbach",
+  "how": "exact"
+ },
+ "brentford": {
+  "fl_slug": "brentford",
+  "name": "Brentford",
+  "how": "exact"
+ },
+ "brighton": {
+  "fl_slug": "brighton-hove-albion",
+  "name": "Brighton",
+  "how": "manual"
+ },
+ "ca-osasuna": {
+  "fl_slug": "osasuna",
+  "name": "CA Osasuna",
+  "how": "manual"
+ },
+ "celta-de-vigo": {
+  "fl_slug": "celta-vigo",
+  "name": "Celta de Vigo",
+  "how": "norm"
+ },
+ "chelsea": {
+  "fl_slug": "chelsea",
+  "name": "Chelsea",
+  "how": "exact"
+ },
+ "pumas-unam": {
+  "fl_slug": "pumas-unam",
+  "name": "Pumas UNAM",
+  "how": "exact"
+ },
+ "santos-laguna": {
+  "fl_slug": "santos-laguna",
+  "name": "Santos Laguna",
+  "how": "exact"
+ },
+ "tigres-uanl": {
+  "fl_slug": "tigres-uanl",
+  "name": "Tigres UANL",
+  "how": "exact"
+ },
+ "tijuana": {
+  "fl_slug": "club-tijuana",
+  "name": "Tijuana",
+  "how": "manual"
+ },
+ "toluca": {
+  "fl_slug": "toluca",
+  "name": "Toluca",
+  "how": "exact"
+ },
+ "como": {
+  "fl_slug": "como-1907",
+  "name": "Como",
+  "how": "norm"
+ },
+ "coventry-city": {
+  "fl_slug": "coventry-city",
+  "name": "Coventry City",
+  "how": "exact"
+ },
+ "elche-cf": {
+  "fl_slug": "elche-cf",
+  "name": "Elche CF",
+  "how": "exact"
+ },
+ "fk-bodo-glimt": {
+  "fl_slug": "fk-bodo-glimt",
+  "name": "FK Bodø/Glimt",
+  "how": "exact"
+ },
+ "olympiacos": {
+  "fl_slug": "olympiacos",
+  "name": "Olympiacos",
+  "how": "exact"
+ },
+ "celtic-fc": {
+  "fl_slug": "celtic",
+  "name": "Celtic",
+  "how": "norm"
+ },
+ "new-york-city-fc": {
+  "fl_slug": "new-york-city-fc",
+  "name": "New York City FC",
+  "how": "exact"
+ },
+ "inter-miami-cf": {
+  "fl_slug": "inter-miami",
+  "name": "Inter Miami CF",
+  "how": "norm"
+ },
+ "fc-porto": {
+  "fl_slug": "fc-porto",
+  "name": "FC Porto",
+  "how": "exact"
+ },
+ "sl-benfica": {
+  "fl_slug": "sl-benfica",
+  "name": "SL Benfica",
+  "how": "exact"
+ },
+ "sporting-cp": {
+  "fl_slug": "sporting-cp",
+  "name": "Sporting CP",
+  "how": "exact"
+ },
+ "as-monaco": {
+  "fl_slug": "as-monaco",
+  "name": "AS Mónaco",
+  "how": "exact"
+ },
+ "deportivo": {
+  "fl_slug": "deportivo-la-coruna",
+  "name": "Deportivo de La Coruña",
+  "how": "manual"
+ },
+ "estrasburgo": {
+  "fl_slug": "rc-strasbourg-alsace",
+  "name": "Estrasburgo",
+  "how": "manual"
+ },
+ "fc-colonia": {
+  "fl_slug": "1-fc-koln",
+  "name": "FC Köln",
+  "how": "manual"
+ },
+ "hamburgo": {
+  "fl_slug": "hamburger-sv",
+  "name": "Hamburgo",
+  "how": "manual"
+ },
+ "deportivo-alaves": {
+  "fl_slug": "deportivo-alaves",
+  "name": "Deportivo Alavés",
+  "how": "exact"
+ },
+ "eintracht-frankfurt": {
+  "fl_slug": "eintracht-frankfurt",
+  "name": "Eintracht Frankfurt",
+  "how": "exact"
+ },
+ "everton": {
+  "fl_slug": "everton",
+  "name": "Everton",
+  "how": "exact"
+ },
+ "fc-barcelona": {
+  "fl_slug": "fc-barcelona",
+  "name": "FC Barcelona",
+  "how": "exact"
+ },
+ "fiorentina": {
+  "fl_slug": "fiorentina",
+  "name": "Fiorentina",
+  "how": "exact"
+ },
+ "fulham": {
+  "fl_slug": "fulham",
+  "name": "Fulham",
+  "how": "exact"
+ },
+ "getafe-cf": {
+  "fl_slug": "getafe-cf",
+  "name": "Getafe CF",
+  "how": "exact"
+ },
+ "hoffenheim": {
+  "fl_slug": "tsg-hoffenheim",
+  "name": "Hoffenheim",
+  "how": "manual"
+ },
+ "hull-city": {
+  "fl_slug": "hull-city",
+  "name": "Hull City",
+  "how": "exact"
+ },
+ "inter-de-milan": {
+  "fl_slug": "inter-milan",
+  "name": "Inter de Milán",
+  "how": "norm"
+ },
+ "ipswich-town": {
+  "fl_slug": "ipswich-town",
+  "name": "Ipswich Town",
+  "how": "exact"
+ },
+ "juventus": {
+  "fl_slug": "juventus",
+  "name": "Juventus",
+  "how": "exact"
+ },
+ "lazio": {
+  "fl_slug": "lazio",
+  "name": "Lazio",
+  "how": "exact"
+ },
+ "leeds-united": {
+  "fl_slug": "leeds-united",
+  "name": "Leeds United",
+  "how": "exact"
+ },
+ "levante-ud": {
+  "fl_slug": "levante-ud",
+  "name": "Levante UD",
+  "how": "exact"
+ },
+ "losc-lille": {
+  "fl_slug": "losc-lille",
+  "name": "LOSC Lille",
+  "how": "exact"
+ },
+ "malaga": {
+  "fl_slug": "malaga-cf",
+  "name": "Málaga",
+  "how": "norm"
+ },
+ "manchester-city": {
+  "fl_slug": "manchester-city",
+  "name": "Manchester City",
+  "how": "exact"
+ },
+ "manchester-united": {
+  "fl_slug": "manchester-united",
+  "name": "Manchester United",
+  "how": "exact"
+ },
+ "napoli": {
+  "fl_slug": "napoli",
+  "name": "Napoli",
+  "how": "exact"
+ },
+ "newcastle-united": {
+  "fl_slug": "newcastle-united",
+  "name": "Newcastle United",
+  "how": "exact"
+ },
+ "nottingham-forest": {
+  "fl_slug": "nottingham-forest",
+  "name": "Nottingham Forest",
+  "how": "exact"
+ },
+ "olympique-de-lyon": {
+  "fl_slug": "olympique-lyonnais",
+  "name": "Olympique de Lyon",
+  "how": "manual"
+ },
+ "olympique-de-marsella": {
+  "fl_slug": "olympique-de-marseille-om",
+  "name": "Olympique de Marsella",
+  "how": "manual"
+ },
+ "parma": {
+  "fl_slug": "parma",
+  "name": "Parma",
+  "how": "exact"
+ },
+ "racing-santander": {
+  "fl_slug": "racing-santander",
+  "name": "Racing Santander",
+  "how": "exact"
+ },
+ "rayo-vallecano": {
+  "fl_slug": "rayo-vallecano",
+  "name": "Rayo Vallecano",
+  "how": "exact"
+ },
+ "rb-leipzig": {
+  "fl_slug": "rb-leipzig",
+  "name": "RB Leipzig",
+  "how": "exact"
+ },
+ "rc-lens": {
+  "fl_slug": "rc-lens",
+  "name": "RC Lens",
+  "how": "exact"
+ },
+ "rcd-espanyol": {
+  "fl_slug": "rcd-espanyol-barcelona",
+  "name": "RCD Espanyol",
+  "how": "manual"
+ },
+ "real-betis": {
+  "fl_slug": "real-betis-balompie",
+  "name": "Real Betis",
+  "how": "manual"
+ },
+ "real-madrid": {
+  "fl_slug": "real-madrid",
+  "name": "Real Madrid",
+  "how": "exact"
+ },
+ "real-sociedad": {
+  "fl_slug": "real-sociedad",
+  "name": "Real Sociedad",
+  "how": "exact"
+ },
+ "sc-freiburg": {
+  "fl_slug": "sc-freiburg",
+  "name": "SC Freiburg",
+  "how": "exact"
+ },
+ "schalke-04": {
+  "fl_slug": "schalke-04",
+  "name": "Schalke 04",
+  "how": "exact"
+ },
+ "sevilla-fc": {
+  "fl_slug": "sevilla-fc",
+  "name": "Sevilla FC",
+  "how": "exact"
+ },
+ "stade-rennais": {
+  "fl_slug": "stade-rennais",
+  "name": "Stade Rennais",
+  "how": "exact"
+ },
+ "sunderland": {
+  "fl_slug": "sunderland",
+  "name": "Sunderland",
+  "how": "exact"
+ },
+ "tottenham-hotspur": {
+  "fl_slug": "tottenham-hotspur",
+  "name": "Tottenham Hotspur",
+  "how": "exact"
+ },
+ "toulouse": {
+  "fl_slug": "toulouse-fc",
+  "name": "Toulouse",
+  "how": "norm"
+ },
+ "union-berlin": {
+  "fl_slug": "union-berlin",
+  "name": "Union Berlin",
+  "how": "exact"
+ },
+ "valencia-cf": {
+  "fl_slug": "valencia-cf",
+  "name": "Valencia CF",
+  "how": "exact"
+ },
+ "vfb-stuttgart": {
+  "fl_slug": "vfb-stuttgart",
+  "name": "VfB Stuttgart",
+  "how": "exact"
+ },
+ "villarreal-cf": {
+  "fl_slug": "villarreal-cf",
+  "name": "Villarreal CF",
+  "how": "exact"
+ },
+ "werder-bremen": {
+  "fl_slug": "werder-bremen",
+  "name": "Werder Bremen",
+  "how": "exact"
+ }
+}
