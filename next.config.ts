@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'banner2.cleanpng.com' },
       { protocol: 'https', hostname: 'i.etsystatic.com' },
       { protocol: 'https', hostname: 'c.perfumesclub.com' },
+      { protocol: 'https', hostname: 'encrypted-tbn0.gstatic.com' },
     ],
   },
   async redirects() {
