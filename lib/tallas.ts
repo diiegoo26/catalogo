@@ -1,6 +1,9 @@
 // lib/tallas.ts
 const CALZADO = new Set(['calzado', 'chanclas']);
-const UNICA = new Set(['accesorios', 'relojes', 'gorras', 'bolsos', 'perfumes']);
+const UNICA = new Set([
+  'accesorios', 'relojes', 'gorras', 'bolsos', 'perfumes',
+  'auriculares', 'altavoces', 'cuidado-personal', 'mandos',
+]);
 
 export const TALLAS_ROPA = [
   '18-24M', '2-3A', '4-5A', '6-7A', '8-9A', '10-11A', '12-13A',
