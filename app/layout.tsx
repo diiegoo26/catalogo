@@ -9,7 +9,7 @@ const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', displa
 const spaceMono = Space_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-space-mono', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: { default: 'KOVA ZONE — Equipaciones de fútbol 2026/27', template: '%s · KOVA ZONE' },
+  title: { default: 'KOVA ZONE — TU ESTILO, TU ZONA', template: '%s · KOVA ZONE' },
   description: 'Catálogo de equipaciones de fútbol de la temporada 2026/27, organizado por país, liga, equipo y marca.',
 };
 

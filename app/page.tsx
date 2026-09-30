@@ -1,6 +1,8 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import CategoryGrid from '@/components/CategoryGrid';
-import { getCategoriesWithCounts } from '@/lib/queries';
+import ResenasDestacadas from '@/components/ResenasDestacadas';
+import { getCategoriesWithCounts, getResenasTienda } from '@/lib/queries';
 
 // Líneas de producto que anuncia la tienda (contenido del cliente).
 const LINEAS = ['👟 Sneakers', '👕 Streetwear', '👜 Bolsos', '⌚ Relojes', '💎 Accesorios'];
@@ -8,6 +10,7 @@ const LINEAS = ['👟 Sneakers', '👕 Streetwear', '👜 Bolsos', '⌚ Relojes'
 export default async function Home() {
   // Nunca enlazamos a una categoría vacía.
   const categories = (await getCategoriesWithCounts()).filter((c) => c.product_count > 0);
+  const resenas = await getResenasTienda(3);
 
   return (
     <>
@@ -51,7 +54,7 @@ export default async function Home() {
           <div className="flex flex-col items-center gap-2 text-sm text-white/70 sm:flex-row sm:justify-center sm:gap-6">
             <span>🚀 Solamente envíos peninsulares</span>
             <span aria-hidden className="hidden h-1 w-1 rounded-full bg-white/25 sm:block" />
-            <span>📦 Envíos 8 - 12 días</span>
+            <span>📦 Envíos 10 - 15 días</span>
           </div>
         </div>
       </section>
@@ -69,6 +72,19 @@ export default async function Home() {
           }))}
         />
       </section>
+
+      {/* Reseñas de tienda — solo aparece cuando ya hay alguna publicada */}
+      {resenas.length > 0 && (
+        <section className="mt-12">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Opiniones</h2>
+            <Link href="/resenas" className="btn btn-outline print:hidden">
+              Ver todas
+            </Link>
+          </div>
+          <ResenasDestacadas resenas={resenas} />
+        </section>
+      )}
     </>
   );
 }

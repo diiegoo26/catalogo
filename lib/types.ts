@@ -9,6 +9,16 @@ export type Variant  = { id: string; product_id: string; size: string | null; co
 export type Player    = { id: string; team_id: string; name: string; number: number };
 export type PatchBadge = { name: string; logo_url: string | null };
 
+/** Reseña de cliente. `product_id` null = reseña general de la tienda. */
+export type Resena = {
+  id: string;
+  product_id: string | null;
+  author: string;
+  rating: number;
+  body: string;
+  created_at: string;
+};
+
 export type ProductCardData = {
   id: string; title: string; slug: string;
   images: string[]; brand: { name: string } | null;

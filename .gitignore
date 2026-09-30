@@ -46,3 +46,7 @@ next-env.d.ts
 
 # SDD workspace (scratch, git-free execution)
 /.superpowers/
+.vercel
+
+# indice local de CodeGraph (se regenera por checkout)
+/.codegraph/

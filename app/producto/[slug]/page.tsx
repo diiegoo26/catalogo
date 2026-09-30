@@ -4,9 +4,10 @@ import Breadcrumbs, { Crumb } from '@/components/Breadcrumbs';
 import KitCustomizer from '@/components/KitCustomizer';
 import ProductGallery from '@/components/ProductGallery';
 import ProductPurchase from '@/components/ProductPurchase';
+import Resenas from '@/components/Resenas';
 import { descripcionVisible } from '@/lib/descripcion';
 import { groupKitsByVariant } from '@/lib/kits';
-import { getProductBySlug, getPlayers, getTeamPatches } from '@/lib/queries';
+import { getProductBySlug, getPlayers, getTeamPatches, getNotaProducto, getResenasProducto } from '@/lib/queries';
 import { TEMPORADA_ACTUAL } from '@/lib/temporada';
 import type { PatchBadge, Player } from '@/lib/types';
 
@@ -31,6 +32,8 @@ export default async function ProductoPage({ params, searchParams }: { params: P
   const [players, patches]: [Player[], PatchBadge[]] = esKitTemporada
     ? await Promise.all([getPlayers(p.team!.id), getTeamPatches(p.team!.id)])
     : [[], []];
+
+  const [resenas, nota] = await Promise.all([getResenasProducto(p.id), getNotaProducto(p.id)]);
 
   // Breadcrumb adaptativo según el flujo al que pertenezca el producto
   let crumbs: Crumb[];
@@ -72,6 +75,14 @@ export default async function ProductoPage({ params, searchParams }: { params: P
           </div>
         </div>
       </div>
+
+      <Resenas
+        productId={p.id}
+        productTitle={p.title}
+        iniciales={resenas}
+        media={nota.media}
+        total={nota.total}
+      />
     </>
   );
 }

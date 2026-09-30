@@ -1,4 +1,20 @@
 import type { NextConfig } from 'next';
+
+// Reclasificación de categorías (2026-09): las categorías antiguas se
+// reagruparon en las líneas nuevas. Mantenemos vivas las URLs antiguas con
+// redirecciones permanentes (tanto la categoría como sus subpáginas de marca).
+const REDIRECCIONES_CATEGORIA: [string, string][] = [
+  ['calzado', 'sneakers'],
+  ['camisetas', 'streetwear'],
+  ['chandal', 'streetwear'],
+  ['conjuntos', 'streetwear'],
+  ['chaquetas', 'streetwear'],
+  ['pantalones', 'streetwear'],
+  ['gorras', 'streetwear'],
+  ['packs', 'bolsos'],
+  ['perfumes', 'accesorios'],
+];
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -27,8 +43,14 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'banner2.cleanpng.com' },
       { protocol: 'https', hostname: 'i.etsystatic.com' },
       { protocol: 'https', hostname: 'c.perfumesclub.com' },
-
     ],
   },
+  async redirects() {
+    return REDIRECCIONES_CATEGORIA.flatMap(([desde, hacia]) => [
+      { source: `/${desde}`, destination: `/${hacia}`, permanent: true },
+      { source: `/${desde}/:path*`, destination: `/${hacia}/:path*`, permanent: true },
+    ]);
+  },
 };
+
 export default nextConfig;
