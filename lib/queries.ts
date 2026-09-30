@@ -75,6 +75,16 @@ export async function getBrandInCategory(brandSlug: string, categoryId: string):
   return all.find((b) => b.slug === brandSlug) ?? null;
 }
 
+/** ¿Tiene sentido filtrar por género en esta categoría? (p. ej. perfumes/electrónica no). */
+export async function categoryHasGenders(categoryId: string): Promise<boolean> {
+  const { count } = await supabase
+    .from('products')
+    .select('id', { count: 'exact', head: true })
+    .eq('category_id', categoryId)
+    .not('gender', 'is', null);
+  return (count ?? 0) > 0;
+}
+
 // ----- Productos -----
 export type ProductFilters = {
   categoryId?: string; brandId?: string; teamId?: string;

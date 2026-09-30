@@ -6,7 +6,7 @@ import Filters from '@/components/Filters';
 import PageHeading from '@/components/PageHeading';
 import { ProductGrid } from '@/components/ProductCard';
 import { brandViewMode } from '@/lib/brand-view';
-import { getBrandsByCategory, getCategory, getProducts } from '@/lib/queries';
+import { categoryHasGenders, getBrandsByCategory, getCategory, getProducts } from '@/lib/queries';
 
 type SP = { gender?: string };
 
@@ -32,6 +32,9 @@ export default async function CategoriaPage({
           brandId: mode === 'single' ? brands[0].id : undefined,
           gender: sp.gender || undefined,
         });
+
+  // El filtro por género solo aporta cuando hay productos con género asignado.
+  const showFilters = mode === 'none' && (await categoryHasGenders(cat.id));
 
   return (
     <>
@@ -70,9 +73,11 @@ export default async function CategoriaPage({
             title={cat.name}
             description={plural(products.length, 'producto', 'productos')}
           />
-          <div className="mb-6">
-            <Filters />
-          </div>
+          {showFilters && (
+            <div className="mb-6">
+              <Filters />
+            </div>
+          )}
           <ProductGrid products={products} />
         </>
       )}
