@@ -1,48 +1,58 @@
 'use client';
-import Image from 'next/image';
 import Link from 'next/link';
 import CestaCheckout from '@/components/CestaCheckout';
 import { useCesta } from '@/components/CestaProvider';
-import { CANTIDAD_MAX } from '@/lib/cesta';
+import FilaCesta from '@/components/FilaCesta';
+
+function IconoCesta() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20 7H6" />
+      <circle cx="9.5" cy="20" r="1.2" />
+      <circle cx="17" cy="20" r="1.2" />
+    </svg>
+  );
+}
 
 export default function CestaPage() {
   const { items, quitarItem, cambiarCantidad, total } = useCesta();
+  const lineas = items.length;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="font-display text-2xl font-bold tracking-tight">Tu cesta</h1>
+    <div className="mx-auto max-w-5xl">
+      <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Tu cesta</h1>
 
-      {items.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-line bg-mist px-6 py-16 text-center">
-          <p className="font-display text-lg font-bold">La cesta está vacía</p>
-          <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted">Añade productos desde el catálogo para pedir un presupuesto.</p>
-          <Link href="/catalogo" className="btn btn-light mt-5 inline-flex">Ver catálogo</Link>
+      {lineas === 0 ? (
+        <div className="mt-8 rounded-card border border-dashed border-line bg-surface px-6 py-20 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-mist text-muted">
+            <IconoCesta />
+          </div>
+          <p className="mt-4 font-display text-lg font-bold">Tu cesta está vacía</p>
+          <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted">
+            Añade productos desde el catálogo y pídelos todos juntos en un solo presupuesto.
+          </p>
+          <Link href="/catalogo" className="btn btn-brand mt-6">Ver catálogo</Link>
         </div>
       ) : (
-        <>
-          <ul className="mt-6 space-y-4">
-            {items.map((it) => (
-              <li key={it.id} className="flex gap-4 border-b border-line pb-4 last:border-0">
-                {it.imageUrl && <Image src={it.imageUrl} alt="" width={80} height={80} className="h-20 w-20 shrink-0 rounded-lg object-cover" />}
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">{it.title}</p>
-                  <p className="text-xs text-muted">
-                    {it.talla}{it.color ? ` · ${it.color}` : ''}{it.personalizacion ? ` · ${it.personalizacion}` : ''}
-                    {it.parches?.length ? ` · ${it.parches.join(', ')}` : ''}
-                  </p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <input type="number" min={1} max={CANTIDAD_MAX} value={it.cantidad}
-                      onChange={(e) => cambiarCantidad(it.id, Number(e.target.value))}
-                      className="w-16 rounded border border-line px-2 py-1 text-sm" />
-                    <button type="button" onClick={() => quitarItem(it.id)} className="text-xs text-red-500 hover:underline">Quitar</button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-right text-sm text-muted">Total: {total} {total === 1 ? 'artículo' : 'artículos'}</p>
-          <div className="mt-6"><CestaCheckout /></div>
-        </>
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <section>
+            <p className="mb-3 text-sm text-muted">
+              {lineas} {lineas === 1 ? 'producto' : 'productos'} · {total} {total === 1 ? 'unidad' : 'unidades'}
+            </p>
+            <ul className="card divide-y divide-line">
+              {items.map((it) => (
+                <FilaCesta
+                  key={it.id} item={it}
+                  onQuitar={() => quitarItem(it.id)}
+                  onCantidad={(n) => cambiarCantidad(it.id, n)}
+                />
+              ))}
+            </ul>
+          </section>
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <CestaCheckout />
+          </aside>
+        </div>
       )}
     </div>
   );

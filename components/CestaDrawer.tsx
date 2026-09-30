@@ -1,8 +1,15 @@
 'use client';
-import Image from 'next/image';
 import Link from 'next/link';
-import { CANTIDAD_MAX } from '@/lib/cesta';
+import FilaCesta from './FilaCesta';
 import { useCesta } from './CestaProvider';
+
+function IconoCerrar() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
 
 export default function CestaDrawer() {
   const { items, abierto, cerrar, quitarItem, cambiarCantidad, total } = useCesta();
@@ -10,45 +17,45 @@ export default function CestaDrawer() {
 
   return (
     <div className="fixed inset-0 z-50 print:hidden">
-      <div className="absolute inset-0 bg-black/40" onClick={cerrar} aria-hidden />
-      <aside role="dialog" aria-label="Cesta" className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-white shadow-2xl">
+      <div className="kz-fade absolute inset-0 bg-ink/50 backdrop-blur-[1px]" onClick={cerrar} aria-hidden />
+      <aside role="dialog" aria-label="Cesta" className="kz-slide-in absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-surface shadow-2xl">
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <p className="font-display font-bold">Tu cesta ({total})</p>
-          <button type="button" onClick={cerrar} className="text-sm text-muted hover:text-ink">Cerrar</button>
+          <p className="font-display font-bold">Tu cesta{total > 0 ? ` · ${total}` : ''}</p>
+          <button
+            type="button" onClick={cerrar} aria-label="Cerrar cesta"
+            className="rounded-full p-1.5 text-muted transition hover:bg-mist hover:text-ink"
+          >
+            <IconoCerrar />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="flex-1 overflow-y-auto px-4">
           {items.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted">Tu cesta está vacía.</p>
+            <div className="py-16 text-center">
+              <p className="font-display font-bold">Tu cesta está vacía</p>
+              <p className="mx-auto mt-1.5 max-w-[16rem] text-sm text-muted">
+                Añade productos desde el catálogo para pedir un presupuesto.
+              </p>
+            </div>
           ) : (
-            <ul className="space-y-3">
+            <ul className="divide-y divide-line">
               {items.map((it) => (
-                <li key={it.id} className="flex gap-3 border-b border-line pb-3 last:border-0">
-                  {it.imageUrl && (
-                    <Image src={it.imageUrl} alt="" width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{it.title}</p>
-                    <p className="text-xs text-muted">{it.talla}{it.color ? ` · ${it.color}` : ''}</p>
-                    <div className="mt-1.5 flex items-center gap-3">
-                      <input
-                        type="number" min={1} max={CANTIDAD_MAX} value={it.cantidad}
-                        onChange={(e) => cambiarCantidad(it.id, Number(e.target.value))}
-                        className="w-16 rounded border border-line px-2 py-1 text-sm"
-                      />
-                      <button type="button" onClick={() => quitarItem(it.id)} className="text-xs text-red-500 hover:underline">Quitar</button>
-                    </div>
-                  </div>
-                </li>
+                <FilaCesta
+                  key={it.id} item={it} compacta
+                  onQuitar={() => quitarItem(it.id)}
+                  onCantidad={(n) => cambiarCantidad(it.id, n)}
+                />
               ))}
             </ul>
           )}
         </div>
 
         <div className="border-t border-line p-4">
-          <Link href="/cesta" onClick={cerrar} className="flex w-full items-center justify-center rounded-full bg-ink py-3 font-semibold text-white">
-            Ver cesta completa
-          </Link>
+          {items.length === 0 ? (
+            <Link href="/catalogo" onClick={cerrar} className="btn btn-outline w-full">Ver catálogo</Link>
+          ) : (
+            <Link href="/cesta" onClick={cerrar} className="btn btn-brand w-full">Continuar</Link>
+          )}
         </div>
       </aside>
     </div>
