@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { withCounts, withInnerProductTotals, type RawBrandRow } from './brand-counts';
-import type { Brand, BrandWithCount, Category, CategoryWithCount, League, PatchBadge, Player, ProductCardData, ProductDetail, Region, Team } from './types';
+import type { Brand, BrandWithCount, Category, CategoryWithCount, League, PatchBadge, Player, ProductCardData, ProductDetail, Region, Resena, Team } from './types';
 
 const CARD = 'id,title,slug,images,brand:brands(name)';
 
@@ -144,4 +144,43 @@ export async function getTeamPatches(teamId: string): Promise<PatchBadge[]> {
     if (c) out.push({ name: c.name, logo_url: c.logo_url });
   }
   return out;
+}
+
+// ----- Reseñas -----
+const RESENA = 'id,product_id,author,rating,body,created_at';
+
+export async function getResenasProducto(productId: string, limit = 50): Promise<Resena[]> {
+  const { data } = await supabase
+    .from('reviews').select(RESENA)
+    .eq('product_id', productId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  return (data ?? []) as Resena[];
+}
+
+export async function getResenasTienda(limit = 9): Promise<Resena[]> {
+  const { data } = await supabase
+    .from('reviews').select(RESENA)
+    .is('product_id', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  return (data ?? []) as Resena[];
+}
+
+/** Nota media exacta de un producto, contando TODAS sus reseñas (no solo las mostradas). */
+export async function getNotaProducto(productId: string): Promise<{ media: number; total: number }> {
+  const { data } = await supabase.from('reviews').select('rating').eq('product_id', productId);
+  const notas = (data ?? []) as { rating: number }[];
+  if (!notas.length) return { media: 0, total: 0 };
+  const suma = notas.reduce((acc, r) => acc + r.rating, 0);
+  return { media: Math.round((suma / notas.length) * 10) / 10, total: notas.length };
+}
+
+/** Nota media de las reseñas DE TIENDA (solo las que no apuntan a un producto). */
+export async function getNotaTienda(): Promise<{ media: number; total: number }> {
+  const { data } = await supabase.from('reviews').select('rating').is('product_id', null);
+  const notas = (data ?? []) as { rating: number }[];
+  if (!notas.length) return { media: 0, total: 0 };
+  const suma = notas.reduce((acc, r) => acc + r.rating, 0);
+  return { media: Math.round((suma / notas.length) * 10) / 10, total: notas.length };
 }

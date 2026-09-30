@@ -95,6 +95,14 @@
   .btn:active {
     transform: translateY(1px) scale(0.99);
   }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: none;
+  }
+  .btn:disabled:active {
+    transform: none;
+  }
   .btn-brand {
     color: #fff;
     background-image: linear-gradient(120deg, var(--color-cyan), var(--color-brand) 52%, var(--color-violet));

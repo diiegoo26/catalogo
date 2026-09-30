@@ -49,3 +49,15 @@ export async function enviarPedido(p: PedidoPayload, opts: Opciones = {}): Promi
   return enviarConReintento(fetchImpl, token, 'sendMessage',
     { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: false }, intentos);
 }
+
+/** Aviso simple al dueño (p. ej. una reseña nueva). No lleva imagen. */
+export async function enviarMensaje(texto: string, opts: Opciones = {}): Promise<EnvioResult> {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const token = opts.token ?? process.env.TELEGRAM_BOT_TOKEN ?? '';
+  const chatId = opts.chatId ?? process.env.TELEGRAM_CHAT_ID ?? '';
+  const intentos = opts.intentos ?? 2;
+  if (!token || !chatId) return { ok: false, error: 'no_config' };
+
+  return enviarConReintento(fetchImpl, token, 'sendMessage',
+    { chat_id: chatId, text: texto, parse_mode: 'HTML', disable_web_page_preview: true }, intentos);
+}
