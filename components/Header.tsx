@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import BotonCesta from './BotonCesta';
 import SearchBar from './SearchBar';
 
 export default function Header() {
@@ -28,6 +29,7 @@ export default function Header() {
           <Link href="/catalogo" className="btn btn-light hidden shrink-0 md:inline-flex">
             Catálogo (PDF)
           </Link>
+          <BotonCesta />
         </div>
       </div>
     </header>
