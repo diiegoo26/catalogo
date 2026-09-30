@@ -34,7 +34,7 @@ export default function CestaPage() {
           <Link href="/catalogo" className="btn btn-brand mt-6">Ver catálogo</Link>
         </div>
       ) : (
-        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <section>
             <p className="mb-3 text-sm text-muted">
               {lineas} {lineas === 1 ? 'producto' : 'productos'} · {total} {total === 1 ? 'unidad' : 'unidades'}

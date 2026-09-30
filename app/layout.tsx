@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Manrope, Space_Grotesk, Space_Mono } from 'next/font/google';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import CestaDrawer from '@/components/CestaDrawer';
 import { CestaProvider } from '@/components/CestaProvider';
 import './globals.css';
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <Footer />
+          <CestaDrawer />
         </CestaProvider>
       </body>
     </html>

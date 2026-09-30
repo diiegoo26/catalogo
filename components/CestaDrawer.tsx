@@ -18,7 +18,7 @@ export default function CestaDrawer() {
   return (
     <div className="fixed inset-0 z-50 print:hidden">
       <div className="kz-fade absolute inset-0 bg-ink/50 backdrop-blur-[1px]" onClick={cerrar} aria-hidden />
-      <aside role="dialog" aria-label="Cesta" className="kz-slide-in absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-surface shadow-2xl">
+      <aside role="dialog" aria-label="Cesta" className="kz-slide-in absolute inset-y-0 right-0 flex w-full max-w-sm flex-col bg-surface shadow-2xl">
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
           <p className="font-display font-bold">Tu cesta{total > 0 ? ` · ${total}` : ''}</p>
           <button
