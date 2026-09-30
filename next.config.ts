@@ -28,6 +28,8 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'img.icons8.com' },
       // Imagenes de Pinterest
       { protocol: 'https', hostname: 'i.pinimg.com' },
+      // Fotos de categoria CC0 (StockSnap): uso comercial libre, sin atribucion
+      { protocol: 'https', hostname: 'cdn.stocksnap.io' },
       // Logos/escudos de otras fuentes (detectadas en la base de datos)
       { protocol: 'https', hostname: 'images.seeklogo.com' },
       { protocol: 'https', hostname: 'encrypted-tbn0.gstatic.com' },

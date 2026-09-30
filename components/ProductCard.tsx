@@ -70,19 +70,26 @@ export default function ProductCard({ p, variant }: { p: ProductCardData; varian
       <div className="relative aspect-square overflow-hidden rounded-card bg-mist ring-1 ring-line transition-shadow duration-200 ease-out group-hover:shadow-[0_18px_40px_-24px_rgba(11,16,48,0.45)]">
         {/* Enlace redundante: el título de abajo es el punto de tabulación del producto. */}
         <Link href={`/producto/${p.slug}`} tabIndex={-1} aria-hidden className="absolute inset-0">
-          {image && (
+          {image && (isLocalCatalogImage(image) ? (
+            // Miniatura del proveedor (~100 px): se muestra a tamaño natural. `next/image`
+            // con `fill` la reescalaría para llenar la caja y se vería pixelada.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 m-auto max-h-[80%] max-w-[80%] object-contain"
+            />
+          ) : (
             <Image
               src={image}
               alt=""
               fill
-              sizes="(min-width:1024px) 25vw, 50vw"
-              className={
-                isLocalCatalogImage(image)
-                  ? 'object-contain p-2.5 transition-transform duration-300 ease-out group-hover:scale-[1.03]'
-                  : 'object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]'
-              }
+              sizes="(min-width:1024px) 270px, (min-width:640px) 33vw, 50vw"
+              className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
             />
-          )}
+          ))}
         </Link>
         {label && (
           <span className="pointer-events-none absolute left-2.5 top-2.5 rounded-full bg-bolt px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-ink shadow-sm">
