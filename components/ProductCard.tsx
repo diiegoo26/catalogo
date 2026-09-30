@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { groupKitsByVariant, type KitVariant } from '@/lib/kits';
+import { isLocalCatalogImage } from '@/lib/media';
 import type { ProductCardData } from '@/lib/types';
 
 type CardEntry = { product: ProductCardData; variant: KitVariant | null };
@@ -75,7 +76,11 @@ export default function ProductCard({ p, variant }: { p: ProductCardData; varian
               alt=""
               fill
               sizes="(min-width:1024px) 25vw, 50vw"
-              className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+              className={
+                isLocalCatalogImage(image)
+                  ? 'object-contain p-2.5 transition-transform duration-300 ease-out group-hover:scale-[1.03]'
+                  : 'object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]'
+              }
             />
           )}
         </Link>
