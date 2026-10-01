@@ -194,3 +194,10 @@ export async function getNotaTienda(): Promise<{ media: number; total: number }>
   const suma = notas.reduce((acc, r) => acc + r.rating, 0);
   return { media: Math.round((suma / notas.length) * 10) / 10, total: notas.length };
 }
+
+// ----- Visitas -----
+/** Total de visitas de la tienda. Si la fila no existe o no se puede leer, 0. */
+export async function getVisitasTienda(): Promise<number> {
+  const { data } = await supabase.from('site_visits').select('total').eq('id', 1).maybeSingle();
+  return (data as { total: number } | null)?.total ?? 0;
+}

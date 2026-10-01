@@ -29,7 +29,10 @@ describe('decisionVisita', () => {
 
   it('un bot ni siquiera llega a la cuota aunque ya esté agotada', () => {
     const consumirCupo = vi.fn(() => false);
-    expect(decisionVisita('Googlebot/2.1', consumirCupo).motivo).toBe('bot');
+    expect(decisionVisita('Googlebot/2.1', consumirCupo)).toEqual({
+      cuenta: false,
+      motivo: 'bot',
+    });
     expect(consumirCupo).not.toHaveBeenCalled();
   });
 });
