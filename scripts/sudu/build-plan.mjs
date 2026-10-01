@@ -32,13 +32,24 @@ if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-const { data: categories, error: catErr } = await sb.from('categories').select('id,slug,name,sort_order');
-if (catErr) throw catErr;
-const { data: brands, error: brandErr } = await sb.from('brands').select('id,name,slug');
-if (brandErr) throw brandErr;
-const { data: products, error: prodErr } = await sb
-  .from('products').select('id,title,slug,brand_id,category_id,is_featured');
-if (prodErr) throw prodErr;
+// PostgREST truncates a bare select at the project max-rows (1,000 here): a
+// single call silently matched against less than half a 2,180-row catalog and
+// seeded a slug set that could collide on insert. Page through explicitly.
+async function selectAll(table, columns) {
+  const page = 1000;
+  const rows = [];
+  for (let from = 0; ; from += page) {
+    const { data, error } = await sb.from(table).select(columns).range(from, from + page - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < page) return rows;
+  }
+}
+
+const categories = await selectAll('categories', 'id,slug,name,sort_order');
+const brands = await selectAll('brands', 'id,name,slug');
+const products = await selectAll('products', 'id,title,slug,brand_id,category_id,is_featured');
+console.log(`catalog: ${products.length} products, ${categories.length} categories, ${brands.length} brands`);
 
 const MOVILES = { name: 'Móviles', slug: 'moviles', sort_order: 14 };
 const categorySlugs = new Set(categories.map((c) => c.slug));
@@ -385,6 +396,7 @@ writeFileSync(
   'utf8',
 );
 
+console.log(`catalog products : ${products.length}`);
 console.log(`inserted         : ${inserted.length}`);
 console.log(`updated          : ${updated.length}`);
 console.log(`matched no photo : ${matchedNoPhoto.length}`);
