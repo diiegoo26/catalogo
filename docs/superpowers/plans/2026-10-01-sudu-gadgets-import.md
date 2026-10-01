@@ -605,7 +605,7 @@ describe('isDistinctiveToken', () => {
     }
   });
   it('rejects placeholders, generics and short tokens', () => {
-    for (const t of ['01', '07', 'pro', 'max', 'ultra', 'edition', 'version', 'new', 'mini', 'the']) {
+    for (const t of ['01', '07', 'air', 'pro', 'max', 'ultra', 'edition', 'version', 'new', 'mini', 'the']) {
       expect(isDistinctiveToken(t)).toBe(false);
     }
   });
@@ -670,10 +670,10 @@ describe('matchAll', () => {
 
   it('refuses to guess when two candidates qualify, and lists them', () => {
     const dupes: ExistingProduct[] = [
-      { id: 'a', title: 'Nike Air Max 97', slug: 'nike-air-max-97', brandKey: 'nike' },
-      { id: 'b', title: 'Nike Air Max 97 OG', slug: 'nike-air-max-97-og', brandKey: 'nike' },
+      { id: 'a', title: 'Nike Air Max 97 Retro', slug: 'nike-air-max-97-retro', brandKey: 'nike' },
+      { id: 'b', title: 'Nike Air Max 97 Retro OG', slug: 'nike-air-max-97-retro-og', brandKey: 'nike' },
     ];
-    const [r] = matchAll([rec('Nike Air Max 97 Retro', 'nike')], dupes, opts);
+    const [r] = matchAll([rec('Nike Air Max 97 Retro 2', 'nike')], dupes, opts);
     expect(r.tier).toBe('none');
     expect(r.reason).toContain('2 candidates');
     expect(r.candidates.map((c) => c.id).sort()).toEqual(['a', 'b']);
