@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PageHeading from '@/components/PageHeading';
+import { Seccion, IconoCamion, IconoCamiseta, IconoCruz, IconoInfo } from '@/components/SeccionInfo';
 
 export const metadata: Metadata = {
   title: 'Envíos y devoluciones',
@@ -143,68 +144,5 @@ function telegramEnlace(texto: string, fallback: string) {
     >
       {texto}
     </a>
-  );
-}
-
-/** Bloque con icono, título y contenido. El icono es SVG del mismo lenguaje que
- *  el resto del proyecto, no emoji. */
-function Seccion({
-  titulo,
-  icono,
-  children,
-}: {
-  titulo: string;
-  icono: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section>
-      <h2 className="mb-4 flex items-center gap-3 font-display text-lg font-bold tracking-tight">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
-          {icono}
-        </span>
-        {titulo}
-        <span className="h-px flex-1 bg-line" />
-      </h2>
-      <div className="rounded-card border border-line bg-surface p-5 text-sm leading-relaxed text-ink/85 sm:p-6">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function IconoCamion({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
-      <path d="M2 7h11v9H2zM13 10h4l4 3v3h-8z" />
-      <circle cx="6.5" cy="18" r="1.6" />
-      <circle cx="17" cy="18" r="1.6" />
-    </svg>
-  );
-}
-
-function IconoCamiseta({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
-      <path d="M9 3 4 5.5 5.5 9 8 8v13h8V8l2.5 1L20 5.5 15 3a3 3 0 0 1-6 0Z" />
-    </svg>
-  );
-}
-
-function IconoCruz({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden className={className}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="m9 9 6 6M15 9l-6 6" />
-    </svg>
-  );
-}
-
-function IconoInfo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 11v5M12 8h.01" />
-    </svg>
   );
 }

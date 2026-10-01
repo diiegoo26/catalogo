@@ -25,6 +25,9 @@ export default function Footer() {
           <Link href="/envios-devoluciones" className="transition hover:text-white">
             Envíos y devoluciones
           </Link>
+          <Link href="/guia-de-tallas" className="transition hover:text-white">
+            Guía de tallas
+          </Link>
         </nav>
       </div>
 <div className="border-t border-white/10">
