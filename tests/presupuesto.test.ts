@@ -107,9 +107,9 @@ describe('precios en el presupuesto', () => {
     expect(r).toEqual({ ok: true, presupuesto: { ...base, items: [{ ...item, precio: 18 }] } });
   });
 
-  it('accepts a null price as "a consultar"', () => {
+  it('treats a null price as "a consultar" (no numeric price carried)', () => {
     const r = validarPresupuesto({ ...base, items: [{ ...item, precio: null }] });
-    expect(r).toEqual({ ok: true, presupuesto: { ...base, items: [{ ...item, precio: null }] } });
+    expect(r).toEqual({ ok: true, presupuesto: { ...base, items: [{ ...item }] } });
   });
 
   it('rejects an invalid price', () => {
