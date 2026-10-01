@@ -605,7 +605,7 @@ describe('isDistinctiveToken', () => {
     }
   });
   it('rejects placeholders, generics and short tokens', () => {
-    for (const t of ['01', '07', 'pro', 'max', 'ultra', 'edition', 'version', 'new', 'mini', 'the']) {
+    for (const t of ['01', '07', 'air', 'pro', 'max', 'ultra', 'edition', 'version', 'new', 'mini', 'the']) {
       expect(isDistinctiveToken(t)).toBe(false);
     }
   });
@@ -670,10 +670,10 @@ describe('matchAll', () => {
 
   it('refuses to guess when two candidates qualify, and lists them', () => {
     const dupes: ExistingProduct[] = [
-      { id: 'a', title: 'Nike Air Max 97', slug: 'nike-air-max-97', brandKey: 'nike' },
-      { id: 'b', title: 'Nike Air Max 97 OG', slug: 'nike-air-max-97-og', brandKey: 'nike' },
+      { id: 'a', title: 'Nike Air Max 97 Retro', slug: 'nike-air-max-97-retro', brandKey: 'nike' },
+      { id: 'b', title: 'Nike Air Max 97 Retro OG', slug: 'nike-air-max-97-retro-og', brandKey: 'nike' },
     ];
-    const [r] = matchAll([rec('Nike Air Max 97 Retro', 'nike')], dupes, opts);
+    const [r] = matchAll([rec('Nike Air Max 97 Retro 2', 'nike')], dupes, opts);
     expect(r.tier).toBe('none');
     expect(r.reason).toContain('2 candidates');
     expect(r.candidates.map((c) => c.id).sort()).toEqual(['a', 'b']);
@@ -901,6 +901,7 @@ import posixpath
 import re
 import sys
 import zipfile
+from collections import Counter
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -1039,7 +1040,6 @@ def main() -> None:
         records: list[dict] = []
         skipped: list[dict] = []
         section = ""
-        unknown_headers: list[str] = []
 
         for row in sorted(main.values):
             name = main.text(row, 1)
@@ -1049,11 +1049,13 @@ def main() -> None:
                     skipped.append({"row": row, "reason": "url but no model name in column A"})
                 continue
             if not url:
-                key = section_key(name)
-                if key in SECTIONS:
+                # A no-URL row is a section header only when it is in the fixed
+                # vocabulary. Rows 1/3/5 (sheet title, "HOT SALE list !!!", the
+                # "Modle" column header) are neither: they are expected, and they
+                # are reported in `skipped` for the human to confirm.
+                if section_key(name) in SECTIONS:
                     section = name
                 else:
-                    unknown_headers.append(name)
                     skipped.append({"row": row, "reason": "not a section header and not a product row"})
                 continue
             match = ITEM_ID.search(url)
@@ -1095,8 +1097,10 @@ def main() -> None:
     print(f"skipped            : {len(skipped)}")
     print(f"hot sale entries   : {len(set(hot_ids))}")
     print(f"media written      : {len(needed)} -> {MEDIA_DIR}")
-    if unknown_headers:
-        print(f"UNKNOWN HEADERS    : {unknown_headers}")
+    counts = Counter(r["section"] for r in records)
+    print(f"product sections   : {len(counts)}")
+    for name in sorted(counts):
+        print(f"  {counts[name]:>3}  {name}")
 
 
 if __name__ == "__main__":
@@ -1106,7 +1110,7 @@ if __name__ == "__main__":
 - [ ] **Step 3: Run the extractor**
 
 Run: `python scripts/sudu/extract.py`
-Expected output — these five numbers are the contract:
+Expected output — these numbers are the contract:
 
 ```
 records            : 413
@@ -1116,9 +1120,26 @@ records            : 413
 skipped            : 4
 hot sale entries   : 41
 media written      : 381 -> ...\scripts\sudu\out\media
+product sections   : 14
+   19  Bags and accessioes
+   12  Coats
+   42  Earbuds
+   18  Hair tools
+   87  Hoodies & Sweater & Jacket
+   18  Jersey
+    8  Mobile phones
+   26  Other accsessories
+   26  Pants
+   21  Perfumes
+   67  Shoes
+   16  Speakers
+   44  T-shirts
+    9  Watches
 ```
 
-There must be **no `UNKNOWN HEADERS` line**. If `records` is not 413, or that line appears, stop and investigate before continuing — a section name was not recognised, and every product after it would be silently mis-categorised.
+The per-section lines are right-aligned in three columns; compare the counts, not the spacing.
+
+Rows 1, 3 and 5 (sheet title, `HOT SALE list !!!`, the `Modle` column header) are expected skips and appear in the manifest `skipped` array alongside row 365. **If `records` is not 413, or `product sections` is not 14, stop and investigate before continuing.** A section name missing from the fixed vocabulary makes every later product silently inherit the previous section — that is exactly how the earlier draft sent the 44 `T-shirts` products to `perfumes`.
 
 - [ ] **Step 4: Verify the manifest shape**
 
@@ -1173,7 +1194,7 @@ Create `scripts/sudu/build-plan.mjs`:
 // produces report.md / apply.sql / apply-plan.json. Writes no database rows:
 // the SQL is executed separately, over the Supabase MCP channel, after review.
 import { createClient } from '@supabase/supabase-js';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import {
@@ -1203,13 +1224,24 @@ if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-const { data: categories, error: catErr } = await sb.from('categories').select('id,slug,name,sort_order');
-if (catErr) throw catErr;
-const { data: brands, error: brandErr } = await sb.from('brands').select('id,name,slug');
-if (brandErr) throw brandErr;
-const { data: products, error: prodErr } = await sb
-  .from('products').select('id,title,slug,brand_id,category_id,is_featured');
-if (prodErr) throw prodErr;
+// PostgREST truncates a bare select at the project max-rows (1,000 here): a
+// single call silently matched against less than half a 2,180-row catalog and
+// seeded a slug set that could collide on insert. Page through explicitly.
+async function selectAll(table, columns) {
+  const page = 1000;
+  const rows = [];
+  for (let from = 0; ; from += page) {
+    const { data, error } = await sb.from(table).select(columns).order('id').range(from, from + page - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < page) return rows;
+  }
+}
+
+const categories = await selectAll('categories', 'id,slug,name,sort_order');
+const brands = await selectAll('brands', 'id,name,slug');
+const products = await selectAll('products', 'id,title,slug,brand_id,category_id,is_featured');
+console.log(`catalog: ${products.length} products, ${categories.length} categories, ${brands.length} brands`);
 
 const MOVILES = { name: 'Móviles', slug: 'moviles', sort_order: 14 };
 const categorySlugs = new Set(categories.map((c) => c.slug));
@@ -1350,19 +1382,30 @@ for (const m of matches) {
     images,
     categorySlug: p.categorySlug,
     brandSlug: p.brandSlug,
+    brandKey: p.brandKey,
     brandSource: p.knownBrandSlug ? 'existing' : p.inferredBrandSlug ? 'inferred' : p.brandSlug ? 'approved' : 'none',
     isFeatured: p.featured,
     weidianId: p.weidian_id,
   });
 }
 
+// Only the `safe` tier is applied automatically. A `probable` match is
+// evidence of a product *family*, not of the same product: on this workbook
+// roughly two thirds of them pointed at the wrong row (Jabra elite 75T ->
+// Elite 7 Pro, Samsung watch 9 -> Galaxy Watch Ultra, Apple Pencil 2 ->
+// Pencil 3). They are reported and written nowhere.
 const updated = [];
+const probableOnly = [];
 const matchedNoPhoto = [];
 const assetFailed = [];
 for (const m of matches) {
   if (m.tier === 'none') continue;
   if (conflicted.has(m)) continue;
   const p = m.prepared;
+  if (m.tier === 'probable') {
+    probableOnly.push({ row: p.row, title: p.title, target: m.target, reason: m.reason });
+    continue;
+  }
   if (p.images.length === 0) {
     matchedNoPhoto.push({ row: p.row, title: p.title, target: m.target });
     continue;
@@ -1387,18 +1430,64 @@ for (const m of matches) {
   });
 }
 
+// ----------------------------------------------------------------- prune
+// The builder is meant to be re-run (Step 5 loops on it), so assets left over
+// from a previous classification are removed: a row that used to be inserted
+// and now matches would otherwise leave an orphaned file behind, and that file
+// would be committed.
+const expectedAssets = new Set(
+  [...inserted.flatMap((i) => i.images), ...updated.flatMap((u) => u.images)]
+    .map((path) => path.split('/').pop()),
+);
+const removedAssets = [];
+for (const name of readdirSync(toPath(IMAGE_DIR))) {
+  if (!name.endsWith('.webp') || expectedAssets.has(name)) continue;
+  unlinkSync(toPath(new URL(name, IMAGE_DIR)));
+  removedAssets.push(name);
+}
+console.log(`stale assets removed: ${removedAssets.length}`);
+
+// --------------------------------------------------- possible duplicates
+// Signalling for the human gate only: which new products look like something
+// the catalog already has under a different title. Reported, never acted on.
+const existingByCategoryBrand = new Map();
+for (const q of existing) {
+  if (!q.brandKey) continue;
+  const key = `${q.categorySlug}|${q.brandKey}`;
+  const list = existingByCategoryBrand.get(key) ?? [];
+  list.push(q);
+  existingByCategoryBrand.set(key, list);
+}
+const distinctiveWords = (text) =>
+  [...new Set(normalizeKey(text).split(' '))]
+    .filter((token) => token.length >= 4 && !/^\d+$/.test(token) && !brandTokens.has(token));
+
+for (const ins of inserted) {
+  const pool = ins.brandKey
+    ? existingByCategoryBrand.get(`${ins.categorySlug}|${ins.brandKey}`) ?? []
+    : [];
+  const words = new Set(distinctiveWords(ins.title));
+  ins.possibleDuplicates = words.size === 0
+    ? []
+    : pool
+      .filter((q) => distinctiveWords(q.title).some((token) => words.has(token)))
+      .slice(0, 3)
+      .map((q) => ({ slug: q.slug, title: q.title }));
+}
+const insertsWithPossibleDuplicate = inserted.filter((i) => i.possibleDuplicates.length > 0).length;
+
 // ------------------------------------------------------------ partition check
 const buckets = {
   updated: updated.length,
+  probableOnly: probableOnly.length,
   matchedNoPhoto: matchedNoPhoto.length,
   assetFailed: assetFailed.length,
   conflict: [...conflicted].length,
   inserted: inserted.length,
   unresolvedSection: unresolvedSection.length,
-  skippedRow: manifest.skipped.length,
 };
 const recordsAccounted =
-  buckets.updated + buckets.matchedNoPhoto + buckets.assetFailed
+  buckets.updated + buckets.probableOnly + buckets.matchedNoPhoto + buckets.assetFailed
   + buckets.conflict + buckets.inserted + buckets.unresolvedSection;
 if (recordsAccounted !== manifest.records.length) {
   throw new Error(
@@ -1407,11 +1496,17 @@ if (recordsAccounted !== manifest.records.length) {
 }
 
 // ------------------------------------------------------------ emit the SQL
+// The generated file must reach the database in ONE execution: a Supabase MCP
+// call is its own transaction (verified — BEGIN without COMMIT leaves nothing
+// behind) and a tool-call argument has a size budget. The first version of this
+// emitter wrote one statement per row, 128 KB, and could not be delivered at
+// all. This form carries the same decisions in about 36 KB:
+//   - inserts collapse into one INSERT ... SELECT over a VALUES list,
+//   - ON CONFLICT (slug) DO NOTHING makes a re-run a no-op instead of a
+//     duplicate-slug failure,
+//   - the image filename is derived from the slug, which is exactly how the
+//     assets above were named (`<slug>-<n>.webp`).
 const q = (v) => (v === null || v === undefined ? 'NULL' : `'${String(v).replace(/'/g, "''")}'`);
-const jsonArray = (values) =>
-  values.length === 0
-    ? `'[]'::jsonb`
-    : `to_jsonb(ARRAY[${values.map(q).join(', ')}]::text[])`;
 
 const knownCategories = new Set([...categorySlugs, MOVILES.slug]);
 for (const i of inserted) {
@@ -1438,25 +1533,51 @@ for (const b of uniqueBrandsToCreate) {
 }
 if (uniqueBrandsToCreate.length) lines.push('');
 
-lines.push(`-- ${inserted.length} new products`);
-for (const i of inserted) {
-  const brandRef = i.brandSlug
-    ? `(SELECT id FROM brands WHERE slug = ${q(i.brandSlug)})`
-    : 'NULL';
+if (inserted.length) {
+  lines.push(`-- ${inserted.length} new products`);
+  lines.push('INSERT INTO products (title, slug, description, images, category_id, brand_id, is_featured)');
   lines.push(
-    'INSERT INTO products (title, slug, description, images, category_id, brand_id, is_featured)',
-    `VALUES (${q(i.title)}, ${q(i.slug)}, NULL, ${jsonArray(i.images)},`,
-    `        (SELECT id FROM categories WHERE slug = ${q(i.categorySlug)}), ${brandRef}, ${i.isFeatured});`,
+    "SELECT v.t, v.s, NULL,",
+    "       (CASE v.n WHEN 0 THEN '[]'::jsonb",
+    "                WHEN 1 THEN to_jsonb(ARRAY['/productos/sudu/' || v.s || '-1.webp'])",
+    "                ELSE to_jsonb(ARRAY['/productos/sudu/' || v.s || '-1.webp', '/productos/sudu/' || v.s || '-2.webp']) END),",
+    '       c.id, b.id, v.f',
+    'FROM (VALUES',
+  );
+  lines.push(
+    inserted
+      .map((i) => `  (${q(i.title)}, ${q(i.slug)}, ${q(i.categorySlug)}, ${q(i.brandSlug)}, ${i.isFeatured}, ${i.images.length})`)
+      .join(',\n'),
+  );
+  lines.push(
+    ') AS v(t, s, cslug, bslug, f, n)',
+    'JOIN categories c ON c.slug = v.cslug',
+    'LEFT JOIN brands b ON b.slug = v.bslug',
+    'ON CONFLICT (slug) DO NOTHING;',
+    '',
   );
 }
 
-lines.push('', `-- ${updated.length} image-only updates`);
-for (const u of updated) {
-  const setFeatured = u.isFeatured ? ', is_featured = TRUE' : '';
-  lines.push(`UPDATE products SET images = ${jsonArray(u.images)}${setFeatured} WHERE id = ${q(u.id)}::uuid;`);
+if (updated.length) {
+  lines.push(`-- ${updated.length} image-only updates`);
+  lines.push(
+    'UPDATE products p',
+    'SET images = to_jsonb(u.i), is_featured = COALESCE(u.f, p.is_featured)',
+    'FROM (VALUES',
+  );
+  lines.push(
+    updated
+      .map((u) => `  (${q(u.id)}::uuid, ARRAY[${u.images.map((x) => q(x)).join(', ')}]::text[], ${u.isFeatured ? 'true' : 'NULL::boolean'})`)
+      .join(',\n'),
+  );
+  lines.push(
+    ') AS u(id, i, f)',
+    'WHERE p.id = u.id;',
+    '',
+  );
 }
 
-lines.push('', 'COMMIT;');
+lines.push('COMMIT;');
 writeFileSync(new URL('apply.sql', OUT), lines.join('\n'), 'utf8');
 
 // ---------------------------------------------------------------- report
@@ -1473,6 +1594,9 @@ const md = [
   `| Workbook records | ${manifest.records.length} |`,
   ...Object.entries(buckets).map(([k, v]) => `| ${k} | ${v} |`),
   `| New brands to create | ${uniqueBrandsToCreate.length} |`,
+  `| New products resembling an existing one | ${insertsWithPossibleDuplicate} |`,
+  `| Rows the extractor skipped (not workbook records) | ${manifest.skipped.length} |`,
+  `| Stale assets removed | ${removedAssets.length} |`,
   '',
   '## Categories to create',
   '',
@@ -1495,12 +1619,23 @@ const md = [
     .sort((a, b) => b.count - a.count)
     .map((p) => `| \`${p.from}\` | ${p.proposedName} | ${p.count} | ${p.samples.join(' · ')} |`),
   '',
-  '## Probable matches — image will be replaced',
+  '## Probable matches — nothing written, review manually',
+  '',
+  'Evidence of the same product *family*, not of the same product. None of these is applied.',
   '',
   '| Workbook title | Existing product | Why |',
   '| --- | --- | --- |',
-  ...matches.filter((m) => m.tier === 'probable')
-    .map((m) => `| ${m.prepared.title} | ${m.target.title} (\`${m.target.slug}\`) | ${m.reason} |`),
+  ...probableOnly.map((p) => `| ${p.title} | ${p.target.title} (\`${p.target.slug}\`) | ${p.reason} |`),
+  '',
+  '## Possible duplicates among the new products',
+  '',
+  'New products in the same category and brand that share a distinctive word with an existing',
+  'product. Nothing is changed automatically — check these before or after applying.',
+  '',
+  '| New product | Existing candidates |',
+  '| --- | --- |',
+  ...inserted.filter((i) => i.possibleDuplicates.length)
+    .map((i) => `| ${i.title} (\`${i.slug}\`) | ${i.possibleDuplicates.map((c) => `${c.title} (\`${c.slug}\`)`).join(' · ')} |`),
   '',
   '## Conflicts — two workbook rows, one product, nothing written',
   '',
@@ -1526,7 +1661,11 @@ const md = [
     ? unresolvedSection.map((p) => `- row ${p.row} ${p.title} — section \`${p.section}\``)
     : ['- none']),
   '',
-  '## Unmatched — nothing will be written',
+  '## Unmatched by the matcher — these become the new products',
+  '',
+  'No existing product shares a distinctive token. A row whose section mapped to a category is',
+  'one of the new products below; a row whose section mapped to nothing is held back and listed',
+  'in the unresolved-section table above.',
   '',
   '| Workbook title | Section | Category | Candidates considered | Note |',
   '| --- | --- | --- | --- | --- |',
@@ -1552,13 +1691,16 @@ writeFileSync(
 );
 writeFileSync(
   new URL('apply-plan.json', OUT),
-  JSON.stringify({ buckets, inserted, updated, conflicts, unresolvedSection, brandsToCreate: uniqueBrandsToCreate }, null, 2),
+  JSON.stringify({ buckets, inserted, updated, probableOnly, matchedNoPhoto, assetFailed, conflicts, unresolvedSection, insertsWithPossibleDuplicate, brandsToCreate: uniqueBrandsToCreate }, null, 2),
   'utf8',
 );
 
+console.log(`catalog products : ${products.length}`);
 console.log(`inserted         : ${inserted.length}`);
-console.log(`updated          : ${updated.length}`);
+console.log(`updated (safe)   : ${updated.length}`);
+console.log(`probable no-write: ${probableOnly.length}`);
 console.log(`matched no photo : ${matchedNoPhoto.length}`);
+console.log(`possible dupes   : ${insertsWithPossibleDuplicate}`);
 console.log(`asset failed     : ${assetFailed.length}`);
 console.log(`conflicts        : ${conflicts.length}`);
 console.log(`unresolved categ.: ${unresolvedSection.length}`);
@@ -1586,9 +1728,12 @@ node -e "const p=require('./scripts/sudu/out/apply-plan.json');console.log(p.buc
 
 Sanity bounds to hold before going further:
 
+- The `catalog products` line is the real catalog size (2,180 at the time of writing) and **never exactly 1000** — exactly 1000 means the pagination is broken and matching ran against a truncated catalog.
 - `unresolvedSection` is **0**. Anything else means a section name was missed and those products are deliberately held back.
-- `updated + matchedNoPhoto + assetFailed + conflict + inserted` equals `413`.
+- `updated + probableOnly + matchedNoPhoto + assetFailed + conflict + inserted` equals `413`.
 - `assetFailed` is 0. Anything else means a manifest media name did not resolve to a file.
+- `probableOnly` is expected to be around 30 and **writes nothing**. Only `safe` matches update an existing product.
+- `possible dupes` is informational: it counts new products that resemble an existing one. It is not part of the partition.
 - Every inserted row has a non-empty `title`, and every `images` array is either empty or contains only `/productos/sudu/` paths.
 
 - [ ] **Step 4: Confirm the assets exist**
@@ -1606,9 +1751,10 @@ Expected: equal to the total image count across `inserted` and `updated`. Then o
 Open `scripts/sudu/out/report.md` and confirm:
 
 1. The **unmatched** table contains only genuinely new products, not existing products that failed to match because of a rule that needs fixing.
-2. The **probable** table pairs the right products. Every row here is an image about to be overwritten.
-3. The **conflicts** and **assets that failed** tables are empty or explainable.
-4. The rendered titles read like a real storefront.
+2. The **probable** table: **nothing in it is written.** It is evidence of a product *family*, not of the same product, and roughly two thirds of these pairs are wrong on this workbook. Skim it and note any pair you actually want applied.
+3. The **possible duplicates among the new products** table: every row is a new product that resembles something the catalog already has under another title. Decide whether it should be an insert at all.
+4. The **conflicts** and **assets that failed** tables are empty or explainable.
+5. The rendered titles read like a real storefront.
 
 Decide the **brand proposals**: for each one you want, add it to `scripts/sudu/out/brand-approvals.json` and re-run Step 2. Rename a proposal there if the leading token split it wrongly (for example `Gallery Dept`). Leave the rest unapproved — those products are created with `brand_id = NULL`, exactly like most of the existing catalog.
 
@@ -1661,7 +1807,7 @@ select id, title, slug, images, is_featured from public.products;
 
 - [ ] **Step 2: Apply the generated SQL**
 
-Run the Supabase MCP `execute_sql` tool with the full contents of `scripts/sudu/out/apply.sql`. It opens with `BEGIN;` and closes with `COMMIT;`, so the whole import either lands or does not.
+Run the Supabase MCP `execute_sql` tool with the full contents of `scripts/sudu/out/apply.sql` **in one call**. It opens with `BEGIN;` and closes with `COMMIT;`, so the whole import either lands or does not. It is expected to be roughly 36 KB. A Supabase MCP call is its own transaction, so splitting it across calls loses atomicity, and an argument that is too large is rejected before it reaches Postgres.
 
 If it reports a syntax error, **do not hand-edit the SQL to work around it** — fix the escaping in `build-plan.mjs`, re-run Task 4 Step 2, and apply the regenerated file.
 
@@ -1726,8 +1872,22 @@ const check = (label, ok, detail = '') => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${detail ? `  — ${detail}` : ''}`);
 };
 
-const { data: products } = await sb.from('products').select('id,slug,title,images,is_featured');
-const { data: categories } = await sb.from('categories').select('slug,name');
+// PostgREST truncates a bare select at the project max-rows (1,000 here), and
+// the catalog is now 2,553 rows: page through, or every check below silently
+// passes on a fraction of the data.
+async function selectAll(table, columns) {
+  const page = 1000;
+  const rows = [];
+  for (let from = 0; ; from += page) {
+    const { data, error } = await sb.from(table).select(columns).order('id').range(from, from + page - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < page) return rows;
+  }
+}
+
+const products = await selectAll('products', 'id,slug,title,images,is_featured');
+const categories = await selectAll('categories', 'slug,name');
 
 const bySlug = new Map(products.map((p) => [p.slug, p]));
 const byId = new Map(products.map((p) => [p.id, p]));
