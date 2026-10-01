@@ -27,6 +27,8 @@ export type ProductCardData = {
 export type ProductDetail = ProductCardData & {
   description: string | null;
   season: string | null;
+  /** Precio propio en euros; null = aplica la regla por categoría de lib/precios.ts. */
+  price: number | null;
   category: { name: string; slug: string };
   brand: { name: string; slug: string } | null;
   team: { id: string; name: string; slug: string;

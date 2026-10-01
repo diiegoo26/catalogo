@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import Breadcrumbs, { Crumb } from '@/components/Breadcrumbs';
 import KitCustomizer from '@/components/KitCustomizer';
 import ProductGallery from '@/components/ProductGallery';
+import CompraEquipacion from '@/components/CompraEquipacion';
+import PrecioProducto from '@/components/PrecioProducto';
 import ProductPurchase from '@/components/ProductPurchase';
 import Resenas from '@/components/Resenas';
 import { descripcionVisible } from '@/lib/descripcion';
@@ -29,6 +31,9 @@ export default async function ProductoPage({ params, searchParams }: { params: P
   const desc = descripcionVisible(p.description);
 
   const esKitTemporada = Boolean(p.team && p.season === TEMPORADA_ACTUAL);
+  // Toda equipación lleva selector de calidad (Fans/Jugador), tenga o no
+  // personalización: el precio depende de la calidad, no de los extras.
+  const esEquipacion = p.category.slug === 'equipaciones';
   const [players, patches]: [Player[], PatchBadge[]] = esKitTemporada
     ? await Promise.all([getPlayers(p.team!.id), getTeamPatches(p.team!.id)])
     : [[], []];
@@ -69,8 +74,16 @@ export default async function ProductoPage({ params, searchParams }: { params: P
             {esKitTemporada ? (
               <KitCustomizer key={selected?.kind ?? 'default'} title={selected ? `${p.title} — ${selected.title}` : p.title} variants={p.variants}
                 players={players} patches={patches} imageUrl={p.images[0]} categoria={p.category.slug} />
+            ) : esEquipacion ? (
+              <CompraEquipacion key={selected?.kind ?? 'default'} title={selected ? `${p.title} — ${selected.title}` : p.title}
+                variants={p.variants} imageUrl={p.images[0]} categoria={p.category.slug} />
             ) : (
-              <ProductPurchase title={p.title} variants={p.variants} imageUrl={p.images[0]} categoria={p.category.slug} />
+              <>
+                <div className="mb-5">
+                  <PrecioProducto categoria={p.category.slug} precio={p.price} />
+                </div>
+                <ProductPurchase title={p.title} variants={p.variants} imageUrl={p.images[0]} categoria={p.category.slug} />
+              </>
             )}
           </div>
         </div>

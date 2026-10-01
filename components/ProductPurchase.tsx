@@ -3,12 +3,20 @@ import { useMemo, useState } from 'react';
 import BotonAgregar from './BotonAgregar';
 import { useCesta } from './CestaProvider';
 import OpcionesPedido, { OPCIONES_INICIALES, type Opciones } from './OpcionesPedido';
+import { conCalidad } from '@/lib/calidad';
 import { tallasParaCategoria } from '@/lib/tallas';
 import type { Variant } from '@/lib/types';
 
-export default function ProductPurchase({ title, variants, imageUrl, categoria }: {
-  title: string; variants: Variant[]; imageUrl?: string; categoria: string;
-}) {
+export { conCalidad };
+
+type Props = {
+  title: string;
+  variants: Variant[];
+  imageUrl?: string;
+  categoria: string;
+};
+
+export default function ProductPurchase({ title, variants, imageUrl, categoria }: Props) {
   const tallas = useMemo(() => tallasParaCategoria(categoria), [categoria]);
   const colors = useMemo(() => [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[], [variants]);
   const [color, setColor] = useState<string | null>(null);
