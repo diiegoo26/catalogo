@@ -16,7 +16,7 @@
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import sharp from 'sharp';
 import {
-  limpiarTitulo, detectarTemporada, detectarKit, esNino,
+  limpiarTitulo, detectarTemporada, detectarKit, esNino, esTemporadaReciente,
   candidatosEquipo, renderTitulo, slugRetro, asignarSlugUnico,
 } from '../../lib/retro/naming.ts';
 import { resolverEquipo } from '../../lib/retro/teams.ts';
@@ -71,12 +71,18 @@ const sinTemporada = [];
 const colisiones = [];
 const ilegibles = [];
 let ninos = 0;
+let recientes = 0;
 
 for (const album of albumes) {
   const limpio = limpiarTitulo(album.title);
   if (esNino(limpio)) { ninos++; continue; }
 
   const temporada = detectarTemporada(limpio);
+
+  // Un kit de la temporada en curso no es retro (y rompería el flujo de compra
+  // y las páginas de equipo): se descarta, igual que los de niño.
+  if (esTemporadaReciente(temporada)) { recientes++; continue; }
+
   const { kit, mangaLarga, versionJugador } = detectarKit(limpio);
 
   // Un título del que no sale ni año ni equipo no da un producto usable
@@ -149,6 +155,7 @@ const lineas = [
   '',
   `- Álbumes vistos: **${albumes.length}**`,
   `- Descartados por ser de niño: **${ninos}**`,
+  `- Descartados por ser de temporada reciente: **${recientes}**`,
   `- Descartados por ilegibles: **${ilegibles.length}**`,
   `- Productos en el manifest: **${filas.length}**`,
   `- Portadas descargadas ahora: **${aDescargar.length - fallos.length}** de ${aDescargar.length}`,
@@ -172,3 +179,4 @@ const lineas = [
 ];
 writeFileSync(`${OUT}/report.md`, lineas.join('\n'));
 console.log(`manifest: ${filas.length} productos | ilegibles: ${ilegibles.length} | sin equipo: ${sinEquipo.length} | fallos: ${fallos.length}`);
+console.log(`descartados: niños ${ninos} | temporada reciente ${recientes}`);
