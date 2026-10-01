@@ -207,6 +207,26 @@ banner and the "Categorías" heading:
   This matches how the "Opiniones" section already hides itself when empty.
 - If all three items are absent, the block returns `null` — no empty container, no separator.
 
+## Visit counter animation
+
+The visit count is a client component that counts up from 0 to the total on mount, over
+1.2 seconds, on the same `cubic-bezier` easing the storefront banner uses. It always starts
+from 0, on every load: the counter is proof of traffic, and a visitor seeing it climb is the
+point.
+
+Two details that keep it honest:
+
+- **The server still renders the final total.** The component hydrates and starts from 0, but
+  the initial HTML contains the real number, so the count is visible with JavaScript disabled
+  and to crawlers. Without this the home page would depend on a bundle to show its own stats.
+- **The animated digits are `aria-hidden`; the wrapper carries `aria-label`.** A screen reader
+  must hear "13 visitas" once, not thirteen numbers changing. `tabular-nums` stops the number
+  from jittering as its width changes.
+
+`prefers-reduced-motion: reduce` jumps straight to the total. The global rule in `globals.css`
+already neutralises CSS animations, but this is JavaScript, so the animation checks the media
+query itself.
+
 ## Error handling
 
 | Situation | Behaviour |
