@@ -1872,8 +1872,22 @@ const check = (label, ok, detail = '') => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${detail ? `  — ${detail}` : ''}`);
 };
 
-const { data: products } = await sb.from('products').select('id,slug,title,images,is_featured');
-const { data: categories } = await sb.from('categories').select('slug,name');
+// PostgREST truncates a bare select at the project max-rows (1,000 here), and
+// the catalog is now 2,553 rows: page through, or every check below silently
+// passes on a fraction of the data.
+async function selectAll(table, columns) {
+  const page = 1000;
+  const rows = [];
+  for (let from = 0; ; from += page) {
+    const { data, error } = await sb.from(table).select(columns).order('id').range(from, from + page - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < page) return rows;
+  }
+}
+
+const products = await selectAll('products', 'id,slug,title,images,is_featured');
+const categories = await selectAll('categories', 'slug,name');
 
 const bySlug = new Map(products.map((p) => [p.slug, p]));
 const byId = new Map(products.map((p) => [p.id, p]));
