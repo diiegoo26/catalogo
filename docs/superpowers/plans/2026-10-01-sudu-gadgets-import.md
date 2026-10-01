@@ -1194,7 +1194,7 @@ Create `scripts/sudu/build-plan.mjs`:
 // produces report.md / apply.sql / apply-plan.json. Writes no database rows:
 // the SQL is executed separately, over the Supabase MCP channel, after review.
 import { createClient } from '@supabase/supabase-js';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import {
@@ -1231,7 +1231,7 @@ async function selectAll(table, columns) {
   const page = 1000;
   const rows = [];
   for (let from = 0; ; from += page) {
-    const { data, error } = await sb.from(table).select(columns).range(from, from + page - 1);
+    const { data, error } = await sb.from(table).select(columns).order('id').range(from, from + page - 1);
     if (error) throw error;
     rows.push(...data);
     if (data.length < page) return rows;
@@ -1430,6 +1430,23 @@ for (const m of matches) {
   });
 }
 
+// ----------------------------------------------------------------- prune
+// The builder is meant to be re-run (Step 5 loops on it), so assets left over
+// from a previous classification are removed: a row that used to be inserted
+// and now matches would otherwise leave an orphaned file behind, and that file
+// would be committed.
+const expectedAssets = new Set(
+  [...inserted.flatMap((i) => i.images), ...updated.flatMap((u) => u.images)]
+    .map((path) => path.split('/').pop()),
+);
+const removedAssets = [];
+for (const name of readdirSync(toPath(IMAGE_DIR))) {
+  if (!name.endsWith('.webp') || expectedAssets.has(name)) continue;
+  unlinkSync(toPath(new URL(name, IMAGE_DIR)));
+  removedAssets.push(name);
+}
+console.log(`stale assets removed: ${removedAssets.length}`);
+
 // --------------------------------------------------- possible duplicates
 // Signalling for the human gate only: which new products look like something
 // the catalog already has under a different title. Reported, never acted on.
@@ -1468,7 +1485,6 @@ const buckets = {
   conflict: [...conflicted].length,
   inserted: inserted.length,
   unresolvedSection: unresolvedSection.length,
-  skippedRow: manifest.skipped.length,
 };
 const recordsAccounted =
   buckets.updated + buckets.probableOnly + buckets.matchedNoPhoto + buckets.assetFailed
@@ -1547,6 +1563,8 @@ const md = [
   ...Object.entries(buckets).map(([k, v]) => `| ${k} | ${v} |`),
   `| New brands to create | ${uniqueBrandsToCreate.length} |`,
   `| New products resembling an existing one | ${insertsWithPossibleDuplicate} |`,
+  `| Rows the extractor skipped (not workbook records) | ${manifest.skipped.length} |`,
+  `| Stale assets removed | ${removedAssets.length} |`,
   '',
   '## Categories to create',
   '',
@@ -1611,7 +1629,11 @@ const md = [
     ? unresolvedSection.map((p) => `- row ${p.row} ${p.title} — section \`${p.section}\``)
     : ['- none']),
   '',
-  '## Unmatched — nothing will be written',
+  '## Unmatched by the matcher — these become the new products',
+  '',
+  'No existing product shares a distinctive token. A row whose section mapped to a category is',
+  'one of the new products below; a row whose section mapped to nothing is held back and listed',
+  'in the unresolved-section table above.',
   '',
   '| Workbook title | Section | Category | Candidates considered | Note |',
   '| --- | --- | --- | --- | --- |',
