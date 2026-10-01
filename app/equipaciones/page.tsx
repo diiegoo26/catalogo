@@ -18,7 +18,7 @@ export default async function Equipaciones() {
       />
       <CardGrid
         items={[
-          { id: 'retro', name: 'Retro', href: '/equipaciones/retro', meta: 'Clásicos' },
+          { id: 'retro', name: 'Retro', href: '/equipaciones/retro', image: '/categorias/retro.webp', meta: 'Clásicos' },
           ...regions.map((r) => ({ id: r.id, name: r.name, image: r.flag_url, href: `/equipaciones/${r.slug}` })),
         ]}
       />
