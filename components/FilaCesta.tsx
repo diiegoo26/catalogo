@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import CantidadStepper from './CantidadStepper';
 import type { ItemCesta } from '@/lib/cesta';
+import { etiquetaPrecio } from '@/lib/precios';
 
 function IconoQuitar() {
   return (
@@ -26,6 +27,7 @@ export default function FilaCesta({ item, onQuitar, onCantidad, compacta = false
   const thumb = compacta ? 56 : 80;
   const opciones = [item.talla, item.color, item.personalizacion, item.parches?.join(', ')]
     .filter(Boolean).join(' · ');
+  const precio = typeof item.precio === 'number' ? etiquetaPrecio(item.precio) : 'A consultar';
 
   return (
     <li className={`flex gap-4 ${compacta ? 'py-3' : 'p-4'}`}>
@@ -43,17 +45,25 @@ export default function FilaCesta({ item, onQuitar, onCantidad, compacta = false
             </Link>
             {opciones && <p className="mt-0.5 truncate text-xs text-muted">{opciones}</p>}
           </div>
-          <button
-            type="button" onClick={onQuitar} aria-label={`Quitar ${item.title}`}
-            className="shrink-0 rounded-full p-1.5 text-muted transition hover:bg-mist hover:text-red-500"
-          >
-            <IconoQuitar />
-          </button>
+          <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-ink">
+            {precio}
+          </span>
         </div>
-        <div className="mt-2.5">
+        <div className="mt-2.5 flex items-center justify-between gap-3">
           <CantidadStepper valor={item.cantidad} onChange={onCantidad} />
+          {typeof item.precio === 'number' && item.cantidad > 1 && (
+            <span className="text-xs text-muted tabular-nums">
+              {etiquetaPrecio(item.precio * item.cantidad)} en total
+            </span>
+          )}
         </div>
       </div>
+      <button
+        type="button" onClick={onQuitar} aria-label={`Quitar ${item.title}`}
+        className="shrink-0 rounded-full p-1.5 text-muted transition hover:bg-mist hover:text-red-500"
+      >
+        <IconoQuitar />
+      </button>
     </li>
   );
 }

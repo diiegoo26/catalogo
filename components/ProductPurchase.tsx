@@ -14,9 +14,12 @@ type Props = {
   variants: Variant[];
   imageUrl?: string;
   categoria: string;
+  /** Precio unitario ya resuelto por quien conoce la regla (calidad/categoría).
+   * null/undefined = a consultar. */
+  precio?: number | null;
 };
 
-export default function ProductPurchase({ title, variants, imageUrl, categoria }: Props) {
+export default function ProductPurchase({ title, variants, imageUrl, categoria, precio }: Props) {
   const tallas = useMemo(() => tallasParaCategoria(categoria), [categoria]);
   const colors = useMemo(() => [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[], [variants]);
   const [color, setColor] = useState<string | null>(null);
@@ -32,6 +35,7 @@ export default function ProductPurchase({ title, variants, imageUrl, categoria }
       imageUrl,
       talla: opciones.talla ?? '',
       cantidad: opciones.cantidad,
+      precio,
       color: color ?? undefined,
       notas: opciones.notas.trim() || undefined,
     });
