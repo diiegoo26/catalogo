@@ -60,7 +60,6 @@ const AUTOMATIZADOS = [
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36',
   'curl/8.4.0',
   'python-requests/2.32.3',
-  '',
 ];
 
 describe('esBot', () => {
@@ -68,13 +67,17 @@ describe('esBot', () => {
     for (const ua of NAVEGADORES) expect(esBot(ua), ua).toBe(false);
   });
 
-  it('no marca un user-agent vacío ni uno mínimo', () => {
-    expect(esBot('')).toBe(false);
+  it('no marca un user-agent mínimo de navegador', () => {
     expect(esBot('Mozilla/5.0')).toBe(false);
   });
 
   it('marca crawlers, previews y clientes automatizados', () => {
     for (const ua of AUTOMATIZADOS) expect(esBot(ua), ua).toBe(true);
+  });
+
+  it('trata la ausencia de user-agent como no humano', () => {
+    // Ningún navegador omite el suyo, así que un UA vacío nunca es una visita real.
+    expect(esBot('')).toBe(true);
   });
 });
 ```
@@ -98,8 +101,12 @@ Create `lib/bots.ts`:
 const NO_HUMANO =
   /bot|crawl|spider|slurp|facebookexternalhit|telegram|whatsapp|preview|curl|wget|python-requests|headless|phantomjs|pingdom|gtmetrix|lighthouse|ahrefs|semrush/i;
 
-/** ¿La petición viene de un bot o de un previsualizador? Entonces no cuenta. */
+/**
+ * ¿La petición viene de un bot o de un previsualizador? Entonces no cuenta.
+ * Un user-agent vacío también cuenta como no humano: ningún navegador omite el suyo.
+ */
 export function esBot(userAgent: string): boolean {
+  if (!userAgent.trim()) return true;
   return NO_HUMANO.test(userAgent);
 }
 ```
@@ -108,7 +115,7 @@ export function esBot(userAgent: string): boolean {
 
 Run: `npm test -- tests/bots.test.ts`
 
-Expected: PASS, 3 tests.
+Expected: PASS, 4 tests.
 
 - [ ] **Step 5: Run the whole suite to confirm nothing broke**
 
@@ -646,7 +653,7 @@ git commit -m "feat: show visit counter in the home trust block"
 
 Run: `npm test`
 
-Expected: PASS — every pre-existing test plus the 8 new ones (3 in `tests/bots.test.ts`, 5 in `tests/visitas.test.ts`).
+Expected: PASS — every pre-existing test plus the 9 new ones (4 in `tests/bots.test.ts`, 5 in `tests/visitas.test.ts`).
 
 - [ ] **Step 2: Confirm the counter is at zero to start from**
 

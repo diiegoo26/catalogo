@@ -1,8 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import BloqueConfianza from '@/components/BloqueConfianza';
 import CategoryGrid from '@/components/CategoryGrid';
 import ResenasDestacadas from '@/components/ResenasDestacadas';
-import { getCategoriesWithCounts, getResenasTienda } from '@/lib/queries';
+import {
+  getCategoriesWithCounts,
+  getNotaTienda,
+  getResenasTienda,
+  getVisitasTienda,
+} from '@/lib/queries';
 
 // Líneas de producto que anuncia la tienda (contenido del cliente).
 const LINEAS = ['👟 Sneakers', '👕 Streetwear', '👜 Bolsos', '⌚ Relojes', '💎 Accesorios'];
@@ -11,6 +17,7 @@ export default async function Home() {
   // Nunca enlazamos a una categoría vacía.
   const categories = (await getCategoriesWithCounts()).filter((c) => c.product_count > 0);
   const resenas = await getResenasTienda(3);
+  const [nota, visitas] = await Promise.all([getNotaTienda(), getVisitasTienda()]);
 
   return (
     <>
@@ -58,6 +65,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <BloqueConfianza media={nota.media} opiniones={nota.total} visitas={visitas} />
 
       {/* Categorías — única navegación de la portada */}
       <section className="mt-12">
