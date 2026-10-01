@@ -90,7 +90,8 @@ describe('totalEuros / hayPrecioPendiente', () => {
   });
 
   it('treats a missing price as pending', () => {
-    expect(hayPrecioPendiente([{ ...base, id: 'a' }])).toBe(true);
+    const sinPrecio: ItemCesta[] = [{ ...base, id: 'a' }];
+    expect(hayPrecioPendiente(sinPrecio)).toBe(true);
   });
 
   it('is zero and not pending on an empty cart', () => {
