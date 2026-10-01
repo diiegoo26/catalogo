@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   limpiarTitulo, detectarTemporada, detectarKit, esNino, esTemporadaReciente,
   candidatosEquipo, renderTitulo, slugify, slugRetro, asignarSlugUnico,
+  capitalizarNombre,
 } from '../lib/retro/naming';
 
 describe('limpiarTitulo', () => {
@@ -79,6 +80,28 @@ describe('candidatosEquipo', () => {
   });
   it('drops colour words', () => {
     expect(candidatosEquipo('Newcastle white model', null)[0]).toBe('Newcastle');
+  });
+  it('never returns a competition or kit qualifier as the team', () => {
+    // El proveedor pega la competición al equipo sin separador.
+    expect(candidatosEquipo('Real Madrhome liga', null)[0]).toBe('Real Madrhome');
+    expect(candidatosEquipo('Senegal Casual player version', null)[0]).toBe('Senegal');
+    expect(candidatosEquipo('Al Nassr Casual player version', null)[0]).toBe('Al Nassr');
+  });
+});
+
+describe('capitalizarNombre', () => {
+  it('capitalizes the fallback so the storefront title is not lowercase', () => {
+    expect(capitalizarNombre('colombia')).toBe('Colombia');
+    expect(capitalizarNombre('nigeria')).toBe('Nigeria');
+    expect(capitalizarNombre('ireland')).toBe('Ireland');
+  });
+  it('leaves acronyms and numbers alone', () => {
+    expect(capitalizarNombre('soviet CCCP')).toBe('Soviet CCCP');
+    expect(capitalizarNombre('BTS')).toBe('BTS');
+    expect(capitalizarNombre('NK CAMPOS')).toBe('NK CAMPOS');
+  });
+  it('keeps multi-word names readable', () => {
+    expect(capitalizarNombre('netherland Centennial Edition')).toBe('Netherland Centennial Edition');
   });
 });
 
