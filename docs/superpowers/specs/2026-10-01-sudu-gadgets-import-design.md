@@ -85,7 +85,10 @@ side-effect free; re-running a direct database write is not.
 
 ### Phase 1 — Extraction
 
-Python 3.13 + openpyxl, plus the standard library `zipfile`/`ElementTree` for the drawing XML.
+Python 3.13 standard library only — `zipfile` + `xml.etree.ElementTree` read the sheet cells, the
+`sharedStrings` table, the hyperlink relationships and the drawing anchors in one pass. No
+`openpyxl`: it was the source of the earlier contradictory row counts (394 hyperlink relationships
+vs 414 URL cells), and it cannot read the hyperlink targets without a second lookup anyway.
 Images convert to WebP with `sharp` (already a devDependency).
 
 1. **Structure** — read both sheets, classify each row as section header or product.
