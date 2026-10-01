@@ -1,6 +1,7 @@
 import { normalizarTelegram, telefonoValido, telegramValido } from './cliente';
 import { PROVINCIAS } from './provincias';
-import type { ItemPresupuesto } from './cesta';
+import { hayPrecioPendiente, totalEuros, type ItemPresupuesto } from './cesta';
+import { etiquetaPrecio } from './precios';
 
 export function escapeHtml(s: string): string {
   return s
@@ -56,6 +57,13 @@ function validarItem(raw: unknown): { ok: true; item: ItemPresupuesto } | { ok: 
     const imageUrl = texto(o.imageUrl, 500);
     if (!imageUrl || !esUrl(imageUrl)) return { ok: false, error: 'imageUrl' };
     item.imageUrl = imageUrl;
+  }
+  if (o.precio !== undefined && o.precio !== null) {
+    // Precio unitario en euros. Inválido => se rechaza el presupuesto entero.
+    if (typeof o.precio !== 'number' || !Number.isFinite(o.precio) || o.precio < 0) {
+      return { ok: false, error: 'precio' };
+    }
+    item.precio = o.precio;
   }
   if (o.color !== undefined) {
     const color = texto(o.color, 60);
@@ -140,6 +148,13 @@ export function construirResumen(p: PresupuestoPayload): string {
       it.color ? `Color: ${escapeHtml(it.color)}` : null,
     ].filter(Boolean) as string[];
     if (opciones.length) lineas.push(opciones.join(' · '));
+    if (typeof it.precio === 'number') {
+      lineas.push(it.cantidad > 1
+        ? `💶 ${etiquetaPrecio(it.precio)} × ${it.cantidad} = ${etiquetaPrecio(it.precio * it.cantidad)}`
+        : `💶 ${etiquetaPrecio(it.precio)}`);
+    } else {
+      lineas.push(`💶 ${etiquetaPrecio(null)}`);
+    }
     if (it.personalizacion) lineas.push(`Personalización: ${escapeHtml(it.personalizacion)}`);
     if (it.parches?.length) lineas.push(`Parches: ${escapeHtml(it.parches.join(', '))}`);
     if (it.notas) lineas.push(`📝 Notas: ${escapeHtml(it.notas)}`);
@@ -153,6 +168,9 @@ export function construirResumen(p: PresupuestoPayload): string {
     lineas.push(`✈️ <a href="https://t.me/${escapeHtml(p.cliente.telegram)}">@${escapeHtml(p.cliente.telegram)}</a>`);
   }
   lineas.push(`📍 Envío: ${escapeHtml(p.localidad)} (${escapeHtml(p.provincia)}) — el envío es un extra`);
+  lineas.push(hayPrecioPendiente(p.items)
+    ? '💶 Total estimado: a confirmar (solo contamos los artículos con precio)'
+    : `💶 Total estimado: ${etiquetaPrecio(totalEuros(p.items))}`);
   return lineas.join('\n');
 }
 

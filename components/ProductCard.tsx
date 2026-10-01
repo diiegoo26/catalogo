@@ -71,15 +71,16 @@ export default function ProductCard({ p, variant }: { p: ProductCardData; varian
         {/* Enlace redundante: el título de abajo es el punto de tabulación del producto. */}
         <Link href={`/producto/${p.slug}`} tabIndex={-1} aria-hidden className="absolute inset-0">
           {image && (isLocalCatalogImage(image) ? (
-            // Miniatura del proveedor (~100 px): se muestra a tamaño natural. `next/image`
-            // con `fill` la reescalaría para llenar la caja y se vería pixelada.
+            // Miniatura del proveedor (~100 px): a ~1.5× (150 px) para que se vea con un
+            // pixelado leve, ni diminuta ni ampliada a sangre. `next/image` la reescalaría
+            // al tamaño de la tarjeta y la pixelaría más.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={image}
               alt=""
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 m-auto max-h-[80%] max-w-[80%] object-contain"
+              className="absolute inset-0 m-auto h-[150px] w-[150px] max-w-full object-contain"
             />
           ) : (
             <Image

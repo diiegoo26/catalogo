@@ -91,6 +91,56 @@ describe('construirResumen', () => {
   });
 });
 
+describe('precios en el presupuesto', () => {
+  const conPrecios = {
+    items: [
+      { title: 'Camiseta', productUrl: 'https://x.test/a', talla: 'M', cantidad: 2, precio: 18 },
+      { title: 'Bufanda', productUrl: 'https://x.test/b', talla: 'Única', cantidad: 1, precio: 60 },
+    ],
+    cliente: { nombre: 'Ana', telefono: '612 345 678' },
+    provincia: 'Madrid',
+    localidad: 'Alcobendas',
+  };
+
+  it('accepts and keeps a valid unit price', () => {
+    const r = validarPresupuesto({ ...base, items: [{ ...item, precio: 18 }] });
+    expect(r).toEqual({ ok: true, presupuesto: { ...base, items: [{ ...item, precio: 18 }] } });
+  });
+
+  it('accepts a null price as "a consultar"', () => {
+    const r = validarPresupuesto({ ...base, items: [{ ...item, precio: null }] });
+    expect(r).toEqual({ ok: true, presupuesto: { ...base, items: [{ ...item, precio: null }] } });
+  });
+
+  it('rejects an invalid price', () => {
+    for (const precio of ['18', -1, true]) {
+      expect(validarPresupuesto({ ...base, items: [{ ...item, precio }] })).toEqual({ ok: false, error: 'precio' });
+    }
+  });
+
+  it('shows unit price and line total per item', () => {
+    const text = construirResumen(conPrecios);
+    expect(text).toContain('💶');
+    // 18 € × 2 = 36 € (el separador de Intl lleva espacio duro U+00A0)
+    expect(text).toMatch(/18\u00A0€ × 2 = 36\u00A0€/);
+    expect(text).toMatch(/60\u00A0€/);
+  });
+
+  it('shows the numeric total when every line has a price', () => {
+    const text = construirResumen(conPrecios);
+    expect(text).toMatch(/Total estimado: 96\u00A0€/);
+  });
+
+  it('shows "a confirmar" when any line is unpriced', () => {
+    const text = construirResumen({
+      ...conPrecios,
+      items: [...conPrecios.items, { title: 'Gorra', productUrl: 'https://x.test/c', talla: 'Única', cantidad: 1 }],
+    });
+    expect(text).toContain('Total estimado: a confirmar');
+    expect(text).toContain('Precio a consultar');
+  });
+});
+
 describe('repartirAlbumes', () => {
   const urls = (n: number) => Array.from({ length: n }, (_, i) => `https://x.test/${i}.jpg`);
   it('returns nothing for no URLs', () => {

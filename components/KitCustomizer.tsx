@@ -9,7 +9,7 @@ import { conCalidad } from '@/lib/calidad';
 import { LIMITE_NOMBRE } from '@/lib/personalizacion';
 import type { Calidad } from '@/lib/precios';
 import { precioDe } from '@/lib/precios';
-import { tallasParaCategoria } from '@/lib/tallas';
+import { tallasParaProducto } from '@/lib/tallas';
 import type { PatchBadge, Player, Variant } from '@/lib/types';
 
 const limpiarNombre = (v: string) =>
@@ -26,7 +26,7 @@ type Props = {
 };
 
 export default function KitCustomizer({ title, variants, players, patches, imageUrl, categoria }: Props) {
-  const tallas = useMemo(() => tallasParaCategoria(categoria), [categoria]);
+  const tallas = useMemo(() => tallasParaProducto(categoria, title), [categoria, title]);
   const colors = useMemo(() => [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[], [variants]);
   const [opciones, setOpciones] = useState<Opciones>(OPCIONES_INICIALES);
   const [color, setColor] = useState<string | null>(null);

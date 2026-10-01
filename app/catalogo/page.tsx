@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import PageHeading from '@/components/PageHeading';
-import PrintButton from '@/components/PrintButton';
 import { getCatalogProducts } from '@/lib/queries';
 
 export const metadata: Metadata = { title: 'Catálogo completo' };
@@ -21,10 +20,9 @@ export default async function CatalogoPage() {
   return (
     <div>
       <PageHeading
-        eyebrow="PDF · Temporada 2026/27"
+        eyebrow="Temporada 2026/27"
         title="Catálogo completo"
         description={`${products.length} productos · ${ordered.length} categorías`}
-        action={<PrintButton />}
       />
 
       {ordered.map((g) => (

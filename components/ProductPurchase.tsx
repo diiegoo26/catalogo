@@ -4,7 +4,7 @@ import BotonAgregar from './BotonAgregar';
 import { useCesta } from './CestaProvider';
 import OpcionesPedido, { OPCIONES_INICIALES, type Opciones } from './OpcionesPedido';
 import { conCalidad } from '@/lib/calidad';
-import { tallasParaCategoria } from '@/lib/tallas';
+import { tallasParaProducto } from '@/lib/tallas';
 import type { Variant } from '@/lib/types';
 
 export { conCalidad };
@@ -20,7 +20,7 @@ type Props = {
 };
 
 export default function ProductPurchase({ title, variants, imageUrl, categoria, precio }: Props) {
-  const tallas = useMemo(() => tallasParaCategoria(categoria), [categoria]);
+  const tallas = useMemo(() => tallasParaProducto(categoria, title), [categoria, title]);
   const colors = useMemo(() => [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[], [variants]);
   const [color, setColor] = useState<string | null>(null);
   const [opciones, setOpciones] = useState<Opciones>(OPCIONES_INICIALES);
