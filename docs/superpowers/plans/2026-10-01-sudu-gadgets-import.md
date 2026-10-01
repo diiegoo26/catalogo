@@ -1550,7 +1550,7 @@ if (inserted.length) {
       .join(',\n'),
   );
   lines.push(
-    ') AS v(t text, s text, cslug text, bslug text, f boolean, n int)',
+    ') AS v(t, s, cslug, bslug, f, n)',
     'JOIN categories c ON c.slug = v.cslug',
     'LEFT JOIN brands b ON b.slug = v.bslug',
     'ON CONFLICT (slug) DO NOTHING;',
@@ -1571,7 +1571,7 @@ if (updated.length) {
       .join(',\n'),
   );
   lines.push(
-    ') AS u(id uuid, i text[], f boolean)',
+    ') AS u(id, i, f)',
     'WHERE p.id = u.id;',
     '',
   );
