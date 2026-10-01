@@ -88,7 +88,7 @@ export async function categoryHasGenders(categoryId: string): Promise<boolean> {
 // ----- Productos -----
 export type ProductFilters = {
   categoryId?: string; brandId?: string; teamId?: string;
-  gender?: string; season?: string;
+  gender?: string; season?: string; isRetro?: boolean;
 };
 export async function getProducts(f: ProductFilters = {}) {
   let q = supabase.from('products').select(CARD).order('created_at', { ascending: false });
@@ -97,6 +97,7 @@ export async function getProducts(f: ProductFilters = {}) {
   if (f.teamId)     q = q.eq('team_id', f.teamId);
   if (f.season)   q = q.eq('season', f.season);
   if (f.gender)     q = q.eq('gender', f.gender);
+  if (f.isRetro !== undefined) q = q.eq('is_retro', f.isRetro);
   const { data } = await q;
   return (data ?? []) as unknown as ProductCardData[];
 }
