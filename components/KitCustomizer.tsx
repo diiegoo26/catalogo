@@ -8,6 +8,7 @@ import PrecioSelector from './PrecioSelector';
 import { conCalidad } from '@/lib/calidad';
 import { LIMITE_NOMBRE } from '@/lib/personalizacion';
 import type { Calidad } from '@/lib/precios';
+import { precioDe } from '@/lib/precios';
 import { tallasParaCategoria } from '@/lib/tallas';
 import type { PatchBadge, Player, Variant } from '@/lib/types';
 
@@ -57,6 +58,7 @@ export default function KitCustomizer({ title, variants, players, patches, image
       imageUrl,
       talla: opciones.talla ?? '',
       cantidad: opciones.cantidad,
+      precio: precioDe(categoria, null, calidad),
       color: color ?? undefined,
       personalizacion,
       parches: parchesSel.length ? parchesSel : undefined,

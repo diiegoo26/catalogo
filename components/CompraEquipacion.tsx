@@ -3,7 +3,7 @@ import { useState } from 'react';
 import PrecioSelector from './PrecioSelector';
 import ProductPurchase from './ProductPurchase';
 import { conCalidad } from '@/lib/calidad';
-import type { Calidad } from '@/lib/precios';
+import { precioDe, type Calidad } from '@/lib/precios';
 import type { Variant } from '@/lib/types';
 
 /**
@@ -32,6 +32,7 @@ export default function CompraEquipacion({
         variants={variants}
         imageUrl={imageUrl}
         categoria={categoria}
+        precio={precioDe(categoria, null, calidad)}
       />
     </div>
   );

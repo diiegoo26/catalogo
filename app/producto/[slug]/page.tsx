@@ -9,6 +9,7 @@ import ProductPurchase from '@/components/ProductPurchase';
 import Resenas from '@/components/Resenas';
 import { descripcionVisible } from '@/lib/descripcion';
 import { groupKitsByVariant } from '@/lib/kits';
+import { precioDe } from '@/lib/precios';
 import { getProductBySlug, getPlayers, getTeamPatches, getNotaProducto, getResenasProducto } from '@/lib/queries';
 import { TEMPORADA_ACTUAL } from '@/lib/temporada';
 import type { PatchBadge, Player } from '@/lib/types';
@@ -82,7 +83,8 @@ export default async function ProductoPage({ params, searchParams }: { params: P
                 <div className="mb-5">
                   <PrecioProducto categoria={p.category.slug} precio={p.price} />
                 </div>
-                <ProductPurchase title={p.title} variants={p.variants} imageUrl={p.images[0]} categoria={p.category.slug} />
+                <ProductPurchase title={p.title} variants={p.variants} imageUrl={p.images[0]} categoria={p.category.slug}
+                  precio={precioDe(p.category.slug, p.price)} />
               </>
             )}
           </div>

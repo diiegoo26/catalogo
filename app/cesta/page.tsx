@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import CestaCheckout from '@/components/CestaCheckout';
+import TotalCesta from '@/components/TotalCesta';
 import { useCesta } from '@/components/CestaProvider';
 import FilaCesta from '@/components/FilaCesta';
 
@@ -31,7 +32,7 @@ export default function CestaPage() {
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted">
             Añade productos desde el catálogo y pídelos todos juntos en un solo presupuesto.
           </p>
-          <Link href="/catalogo" className="btn btn-brand mt-6">Ver catálogo</Link>
+          <Link href="/" className="btn btn-brand mt-6">Ver productos</Link>
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -49,7 +50,8 @@ export default function CestaPage() {
               ))}
             </ul>
           </section>
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <TotalCesta items={items} />
             <CestaCheckout />
           </aside>
         </div>

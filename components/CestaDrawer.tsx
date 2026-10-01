@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import FilaCesta from './FilaCesta';
+import TotalCesta from './TotalCesta';
 import { useCesta } from './CestaProvider';
 
 function IconoCerrar() {
@@ -50,9 +51,15 @@ export default function CestaDrawer() {
           )}
         </div>
 
+          {items.length > 0 && (
+            <div className="border-t border-line px-4 py-3">
+              <TotalCesta items={items} compacta />
+            </div>
+          )}
+
         <div className="border-t border-line p-4">
           {items.length === 0 ? (
-            <Link href="/catalogo" onClick={cerrar} className="btn btn-outline w-full">Ver catálogo</Link>
+            <Link href="/" onClick={cerrar} className="btn btn-outline w-full">Ver productos</Link>
           ) : (
             <Link href="/cesta" onClick={cerrar} className="btn btn-brand w-full">Continuar</Link>
           )}

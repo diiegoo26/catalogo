@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  agregar, quitar, actualizarCantidad, vaciar, contar,
+  agregar, quitar, actualizarCantidad, vaciar, contar, totalEuros, hayPrecioPendiente,
   serializar, deserializar, cargar, guardar, claveItem,
   CANTIDAD_MAX, CLAVE_CESTA, type ItemCesta, type StorageLike,
 } from '../lib/cesta';
@@ -63,12 +63,46 @@ describe('claveItem', () => {
     expect(claveItem(base)).toBe(claveItem({ ...base, cantidad: 9, imageUrl: 'https://x.test/a.jpg' }));
     expect(claveItem(base)).not.toBe(claveItem({ ...base, talla: 'L' }));
   });
+
+  it('does not split lines on price, so the same item keeps merging', () => {
+    expect(claveItem(base)).toBe(claveItem({ ...base, precio: 18 }));
+    expect(claveItem({ ...base, precio: 18 })).toBe(claveItem({ ...base, precio: 25 }));
+  });
+});
+
+describe('totalEuros / hayPrecioPendiente', () => {
+  it('sums price × quantity across lines', () => {
+    const items: ItemCesta[] = [
+      { ...base, id: 'a', precio: 18, cantidad: 2 },
+      { ...base, id: 'b', talla: 'L', precio: 60, cantidad: 1 },
+    ];
+    expect(totalEuros(items)).toBe(96);
+    expect(hayPrecioPendiente(items)).toBe(false);
+  });
+
+  it('excludes null prices instead of counting them as 0', () => {
+    const items: ItemCesta[] = [
+      { ...base, id: 'a', precio: 18, cantidad: 2 },
+      { ...base, id: 'b', talla: 'L', precio: null, cantidad: 1 },
+    ];
+    expect(totalEuros(items)).toBe(36);
+    expect(hayPrecioPendiente(items)).toBe(true);
+  });
+
+  it('treats a missing price as pending', () => {
+    expect(hayPrecioPendiente([{ ...base, id: 'a' }])).toBe(true);
+  });
+
+  it('is zero and not pending on an empty cart', () => {
+    expect(totalEuros([])).toBe(0);
+    expect(hayPrecioPendiente([])).toBe(false);
+  });
 });
 
 describe('serialize/deserialize + storage', () => {
   it('round-trips through a storage-like object', () => {
     const s = fakeStorage();
-    const items: ItemCesta[] = [{ ...base, id: 'a' }];
+    const items: ItemCesta[] = [{ ...base, id: 'a', precio: 18 }];
     guardar(s, items);
     expect(s.data[CLAVE_CESTA]).toBe(serializar(items));
     expect(cargar(s)).toEqual(items);
@@ -80,5 +114,20 @@ describe('serialize/deserialize + storage', () => {
   });
   it('returns an empty cart when storage is empty', () => {
     expect(cargar(fakeStorage())).toEqual([]);
+  });
+  it('keeps a null price and a missing price', () => {
+    const raw = JSON.stringify({ items: [
+      { ...base, id: 'a', precio: null },
+      { ...base, id: 'b', talla: 'L' },
+    ] });
+    expect(deserializar(raw)).toHaveLength(2);
+  });
+  it('drops lines with an invalid price instead of trusting stored data', () => {
+    // NaN/Infinity no llegan aquí: JSON.stringify los convierte en null, que es
+    // un valor válido ("a consultar"). Solo strings y negativos son inválidos.
+    for (const precio of ['18', -1, true]) {
+      const raw = JSON.stringify({ items: [{ ...base, id: 'a', precio }] });
+      expect(deserializar(raw)).toEqual([]);
+    }
   });
 });
