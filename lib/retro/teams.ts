@@ -47,6 +47,7 @@ export const ALIAS_EQUIPO: Record<string, string> = {
   'spain': 'España',
   'brazil': 'Brasil',
   'netherlands': 'Países Bajos',
+  'netherland': 'Países Bajos',
   'holland': 'Países Bajos',
   'belgium': 'Bélgica',
   'japan': 'Japón',
@@ -73,13 +74,40 @@ export type Resolucion =
   | { estado: 'sin-match' }
   | { estado: 'ambiguo'; candidatos: EquipoLite[] };
 
+// Por debajo de esta longitud una clave de alias es demasiado corta para usarla
+// como prefijo: 'ro' casaría con 'roma', 'rosenborg' o 'romania', y 'mu' con
+// media liga. Las claves cortas siguen funcionando, pero solo por igualdad.
+const LARGO_MINIMO_PREFIJO = 6;
+
+/**
+ * Nombre destino del alias: primero la clave exacta; si no la hay, la clave más
+ * larga que sea PREFIJO del candidato.
+ *
+ * El proveedor pega la palabra siguiente al nombre del equipo y no deja
+ * separador: 'Real MadrUCL final', 'Real Madrhome liga', 'Real Madrihome'.
+ * Eso es lo que hace falta resolver aquí. Nunca hay fuzzy matching: solo casan
+ * las claves escritas a mano en ALIAS_EQUIPO.
+ */
+function nombreDeAlias(normalizado: string): string | null {
+  const exacto = ALIAS_EQUIPO[normalizado];
+  if (exacto) return exacto;
+
+  let mejor: string | null = null;
+  for (const clave of Object.keys(ALIAS_EQUIPO)) {
+    if (clave.length < LARGO_MINIMO_PREFIJO) continue;
+    if (normalizado.startsWith(clave) && (mejor === null || clave.length > mejor.length)) mejor = clave;
+  }
+  return mejor ? ALIAS_EQUIPO[mejor] : null;
+}
+
 /**
  * Un equipo solo se asigna cuando exactamente una fila encaja.
  * Cero o varios candidatos => no se adivina: se reporta.
  */
 export function resolverEquipo(nombre: string, equipos: EquipoLite[]): Resolucion {
   const normalizado = normalizar(nombre);
-  const clave = normalizar(ALIAS_EQUIPO[normalizado] ?? nombre);
+  const conAlias = nombreDeAlias(normalizado);
+  const clave = conAlias ? normalizar(conAlias) : normalizado;
   if (!clave) return { estado: 'sin-match' };
 
   const exactos = equipos.filter((e) => normalizar(e.name) === clave);
