@@ -59,6 +59,7 @@ create table products (
   images       jsonb not null default '[]'::jsonb,   -- ["https://...","https://..."]
   gender       text check (gender in ('hombre','mujer','unisex','nino')),  -- para filtros
   season       text,
+  price        numeric(10, 2),  -- NULL = regla por categoría (lib/precios.ts)
   is_featured  boolean not null default false,
   created_at   timestamptz not null default now()
 );

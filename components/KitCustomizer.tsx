@@ -4,7 +4,10 @@ import { useMemo, useState } from 'react';
 import BotonAgregar from './BotonAgregar';
 import { useCesta } from './CestaProvider';
 import OpcionesPedido, { OPCIONES_INICIALES, type Opciones } from './OpcionesPedido';
+import PrecioSelector from './PrecioSelector';
+import { conCalidad } from '@/lib/calidad';
 import { LIMITE_NOMBRE } from '@/lib/personalizacion';
+import type { Calidad } from '@/lib/precios';
 import { tallasParaCategoria } from '@/lib/tallas';
 import type { PatchBadge, Player, Variant } from '@/lib/types';
 
@@ -16,7 +19,7 @@ type Props = {
   title: string;
   variants: Variant[];
   players: Player[];       // vacío = club sin plantilla cargada
-  patches: PatchBadge[];   // vacío = sin parches (sin suplemento)
+  patches: PatchBadge[];   // vacío = sin parches
   imageUrl?: string;
   categoria: string;
 };
@@ -26,6 +29,7 @@ export default function KitCustomizer({ title, variants, players, patches, image
   const colors = useMemo(() => [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[], [variants]);
   const [opciones, setOpciones] = useState<Opciones>(OPCIONES_INICIALES);
   const [color, setColor] = useState<string | null>(null);
+  const [calidad, setCalidad] = useState<Calidad>('fans');
   const [nombre, setNombre] = useState('');
   const [numero, setNumero] = useState('');
   const [jugadorId, setJugadorId] = useState('');
@@ -48,7 +52,7 @@ export default function KitCustomizer({ title, variants, players, patches, image
       ? [nombre, numero, jugadorId ? '(plantilla)' : ''].filter(Boolean).join(' ')
       : undefined;
     agregarItem({
-      title,
+      title: conCalidad(title, calidad),
       productUrl: window.location.href,
       imageUrl,
       talla: opciones.talla ?? '',
@@ -62,6 +66,8 @@ export default function KitCustomizer({ title, variants, players, patches, image
 
   return (
     <div className="space-y-5">
+      <PrecioSelector valor={calidad} onChange={setCalidad} />
+
       <OpcionesPedido tallas={tallas} valor={opciones} onChange={setOpciones} />
       {colors.length > 0 && (
         <div>
@@ -75,7 +81,10 @@ export default function KitCustomizer({ title, variants, players, patches, image
       )}
 
       <div className="rounded-2xl border border-line p-4">
-        <p className="mb-3 font-display text-sm font-bold">Personaliza tu equipación</p>
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <p className="font-display text-sm font-bold">Personaliza tu equipación</p>
+          <p className="text-xs font-medium text-muted">Nombre, dorsal y parches: gratis</p>
+        </div>
 
         {players.length > 0 && (
           <label className="mb-3 block">
@@ -106,7 +115,7 @@ export default function KitCustomizer({ title, variants, players, patches, image
 
         {patches.length > 0 && (
           <div className="mt-4">
-            <p className="mb-2 text-xs text-muted">Parches de competiciones (opcional)</p>
+            <p className="mb-2 text-xs text-muted">Parches de competiciones (opcional, gratis)</p>
             <ul className="flex flex-wrap gap-2">
               {patches.map((p) => {
                 const activo = parchesSel.includes(p.name);
