@@ -12,6 +12,13 @@ const equipos: EquipoLite[] = [
   { id: 't8', name: 'Alemania', slug: 'alemania' },
   { id: 't9', name: 'Napoli', slug: 'napoli' },
   { id: 't10', name: 'Real Zaragoza', slug: 'real-zaragoza' },
+  { id: 't11', name: 'Inter de Milán', slug: 'inter-de-milan' },
+  { id: 't12', name: 'AC Milan', slug: 'ac-milan' },
+  { id: 't13', name: 'Olympique de Marsella', slug: 'olympique-de-marsella' },
+  { id: 't14', name: 'Paris Saint-Germain', slug: 'paris-saint-germain' },
+  { id: 't15', name: 'Deportivo de La Coruña', slug: 'deportivo-de-la-coruna' },
+  { id: 't16', name: 'Atlético de Madrid', slug: 'atletico-de-madrid' },
+  { id: 't17', name: 'Sporting CP', slug: 'sporting-cp' },
 ];
 
 describe('normalizar', () => {
@@ -44,6 +51,15 @@ describe('resolverEquipo', () => {
   it('never guesses between two candidates', () => {
     const r = resolverEquipo('Sevilla', equipos);
     expect(r.estado).toBe('ambiguo');
+  });
+  it('maps the supplier club names onto the Spanish catalogue names', () => {
+    expect(resolverEquipo('Inter milan', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't11' } });
+    expect(resolverEquipo('Milan', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't12' } });
+    expect(resolverEquipo('Marseille', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't13' } });
+    expect(resolverEquipo('Pa-ris', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't14' } });
+    expect(resolverEquipo('De-portivo', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't15' } });
+    expect(resolverEquipo('ATM', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't16' } });
+    expect(resolverEquipo('Lis-bon', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't17' } });
   });
   it('reports an unknown team instead of inventing one', () => {
     expect(resolverEquipo('Wakanda FC', equipos)).toEqual({ estado: 'sin-match' });

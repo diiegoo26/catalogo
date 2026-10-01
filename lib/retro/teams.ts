@@ -28,6 +28,19 @@ export const ALIAS_EQUIPO: Record<string, string> = {
   'ma laga': 'Málaga',
   'bayern': 'Bayern de Múnich',
 
+  // Clubes que el proveedor escribe a la inglesa o abreviados. Verificados
+  // contra `teams`: el destino existe con ese nombre exacto.
+  // 'Lis-bon' es el Sporting de Lisboa, que en `teams` figura como 'Sporting CP'.
+  'inter': 'Inter de Milán',
+  'inter milan': 'Inter de Milán',
+  'milan': 'AC Milan',
+  'marseille': 'Olympique de Marsella',
+  'pa ris': 'Paris Saint-Germain',
+  'paris': 'Paris Saint-Germain',
+  'de portivo': 'Deportivo de La Coruña',
+  'atm': 'Atlético de Madrid',
+  'lis bon': 'Sporting CP',
+
   // Selecciones: el proveedor las nombra en inglés y la tabla `teams` las tiene
   // en español. Sin esto, 1 de cada 5 retro se quedaría sin equipo.
   'germany': 'Alemania',
