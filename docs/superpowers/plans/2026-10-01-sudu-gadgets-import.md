@@ -1567,7 +1567,7 @@ if (updated.length) {
   );
   lines.push(
     updated
-      .map((u) => `  (${q(u.id)}::uuid, ARRAY[${u.images.map((x) => q(x)).join(', ')}]::text[], ${u.isFeatured ? 'true' : 'NULL'})`)
+      .map((u) => `  (${q(u.id)}::uuid, ARRAY[${u.images.map((x) => q(x)).join(', ')}]::text[], ${u.isFeatured ? 'true' : 'NULL::boolean'})`)
       .join(',\n'),
   );
   lines.push(
