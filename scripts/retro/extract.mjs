@@ -90,9 +90,11 @@ for (const album of albumes) {
   let equipo = null;
   let candidato = null;
   for (const c of candidatos) {
+    // Se recuerda el candidato más largo aunque no resuelva: es mejor nombre de
+    // respaldo que el título limpio entero (que repite la temporada y deja el color).
+    if (candidato === null) candidato = c;
     const r = resolverEquipo(c, equipos);
-    if (r.estado === 'ok') { equipo = r.equipo; candidato = c; break; }
-    if (r.estado === 'ambiguo' && candidato === null) candidato = c;
+    if (r.estado === 'ok') { equipo = r.equipo; break; }
   }
   if (!equipo) sinEquipo.push({ albumId: album.albumId, origen: album.title, candidato });
 
@@ -100,7 +102,11 @@ for (const album of albumes) {
   // ofusca el nombre ('Zara-goza' -> 'Zara goza'); el álbum queda en el informe.
   const nombreEquipo = equipo ? equipo.name : (candidato ?? limpio).replace(/-+/g, ' ');
   const title = renderTitulo({ kit, equipo: nombreEquipo, temporada, mangaLarga, versionJugador });
-  const base = slugRetro({ equipoSlug: equipo ? equipo.slug : null, titulo: title, temporada, kit });
+  // Sin equipo, `slugRetro` cae al título. Se le quita el prefijo
+  // "Equipación retro <kit> " para no repetirlo en el slug
+  // ("retro-equipacion-retro-local-inter" -> "retro-inter").
+  const tituloSlug = title.replace(/^Equipación retro \S+ /, '');
+  const base = slugRetro({ equipoSlug: equipo ? equipo.slug : null, titulo: tituloSlug, temporada, kit });
   const slug = asignarSlugUnico(base, usados);
   if (slug !== base) colisiones.push({ slug, base, origen: album.title });
   if (!temporada) sinTemporada.push({ slug, title });
