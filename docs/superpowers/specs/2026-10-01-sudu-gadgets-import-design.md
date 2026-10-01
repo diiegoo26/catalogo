@@ -21,26 +21,36 @@ Two sheets, `Main speadsheet` and `HOT SALE`.
 | E | "Picture" — empty as cell values; photos are embedded drawing objects |
 | F | Weidian product URL |
 
-`Main speadsheet` holds **394 product rows** across 14 sections. `HOT SALE` holds 37 rows that are
-a **promotional subset** of the main sheet — the same Weidian `itemID` values, so it introduces no
-new products. It is used only to flag which products are featured.
+`Main speadsheet` holds **413 product rows** across 15 section-header rows. `HOT SALE` holds 41 rows
+that are a **promotional subset** of the main sheet — the same Weidian `itemID` values, so it
+introduces no new products. It is used only to flag which products are featured.
 
-A **section header** is any row with text in column A but no Weidian URL in column F. That
-heuristic yields the `row → category` ranges without guessing:
+A **section header** is a row with no Weidian URL whose column A matches the fixed section
+vocabulary below, compared after lowercasing and collapsing every run of non-alphanumerics to a
+single space. The vocabulary cannot be derived from "no URL": r104 (`Other accsessories`) carries a
+stray image anchor, and the sheet spells the hoodies header both `Hoodies & Sweater & Jacket` (r198)
+and `Hoodies & Sweater& jacket` (column row). An unknown no-URL row is skipped and reported — it is
+never silently adopted as a section, because that would silently mis-categorise every later product.
 
-Earbuds (r6) · Watches (r49) · Speakers (r59) · Mobile phones (r76) · Hair tools (r85) ·
-Other accsessories (r104) · Perfumes (r131) · T-shirts (r153) · Hoodies & Sweater & Jacket (r198) ·
-Pants (r286) · Jersey (r313) · Coats (r332) · Bags and accessioes (r345) · Shoes (r366)
+Electronics (r2, top-level) · Earbuds (r6) · Watches (r49) · Speakers (r59) · Mobile phones (r76) ·
+Hair tools (r85) · Other accsessories (r104) · Perfumes (r131) · T-shirts (r153) ·
+Hoodies & Sweater & Jacket (r198) · Pants (r286) · Jersey (r313) · Coats (r332) ·
+Bags and accessioes (r345) · Shoes (r366)
+
+Rows 1, 3 and 5 (sheet title/contact, `HOT SALE list !!!`, the `Modle` column header) and r365
+(URL but no model name) are skipped and listed in the report.
 
 ### Imagery
 
-381 distinct photos live in `xl/media/`, anchored as floating objects across
-`xl/drawings/drawing1.xml` (main) and `drawing2.xml` (HOT SALE). The anchor's `from` row gives the
-owning product row. The anchor column is negative (images float left of column A), which does not
-affect row mapping. 384 anchors cover 368 product rows; 6 products carry two images.
+381 distinct photos live in `xl/media/` (374 `.jpg`, 7 `.png`), all of them referenced. `drawing1.xml`
+carries 384 `oneCellAnchor` placements for the main sheet; `drawing2.xml` carries 29 for HOT SALE,
+drawn from the same 381 files. The anchor's `from` row (0-based) + 1 gives the owning row; the
+anchor column is negative (images float left of column A) and does not affect row mapping.
 
-26 product rows have no embedded image. One row (r365) has prices and a URL but **no model name**;
-it is not imported and is reported instead.
+376 product rows carry at least one image and 37 carry none. Two of the 384 anchors sit on
+section-header rows and are ignored, so 382 land on products: 370 rows with one image plus six rows
+with two (r109, r128, r166, r189, r200, r243). Products with no embedded image are created with
+`images = []` and listed in the report.
 
 ## Decisions
 
@@ -69,7 +79,7 @@ Phase 2  Apply (SQL via Supabase)   ──> inserts + image-only updates
 Phase 3  Verify (SQL + web spot-check)
 ```
 
-The gate is the point of the design: 394 rows land in a 2,180-row catalog, and the extraction
+The gate is the point of the design: 413 rows land in a 2,180-row catalog, and the extraction
 rules are the part most likely to need correction. Re-running the extractor is cheap and
 side-effect free; re-running a direct database write is not.
 
