@@ -1562,7 +1562,7 @@ if (updated.length) {
   lines.push(`-- ${updated.length} image-only updates`);
   lines.push(
     'UPDATE products p',
-    'SET images = u.i::jsonb, is_featured = COALESCE(u.f, p.is_featured)',
+    'SET images = to_jsonb(u.i), is_featured = COALESCE(u.f, p.is_featured)',
     'FROM (VALUES',
   );
   lines.push(
