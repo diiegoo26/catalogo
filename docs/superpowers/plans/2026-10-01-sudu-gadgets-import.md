@@ -901,6 +901,7 @@ import posixpath
 import re
 import sys
 import zipfile
+from collections import Counter
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -1039,7 +1040,6 @@ def main() -> None:
         records: list[dict] = []
         skipped: list[dict] = []
         section = ""
-        unknown_headers: list[str] = []
 
         for row in sorted(main.values):
             name = main.text(row, 1)
@@ -1049,11 +1049,13 @@ def main() -> None:
                     skipped.append({"row": row, "reason": "url but no model name in column A"})
                 continue
             if not url:
-                key = section_key(name)
-                if key in SECTIONS:
+                # A no-URL row is a section header only when it is in the fixed
+                # vocabulary. Rows 1/3/5 (sheet title, "HOT SALE list !!!", the
+                # "Modle" column header) are neither: they are expected, and they
+                # are reported in `skipped` for the human to confirm.
+                if section_key(name) in SECTIONS:
                     section = name
                 else:
-                    unknown_headers.append(name)
                     skipped.append({"row": row, "reason": "not a section header and not a product row"})
                 continue
             match = ITEM_ID.search(url)
@@ -1095,8 +1097,10 @@ def main() -> None:
     print(f"skipped            : {len(skipped)}")
     print(f"hot sale entries   : {len(set(hot_ids))}")
     print(f"media written      : {len(needed)} -> {MEDIA_DIR}")
-    if unknown_headers:
-        print(f"UNKNOWN HEADERS    : {unknown_headers}")
+    counts = Counter(r["section"] for r in records)
+    print(f"product sections   : {len(counts)}")
+    for name in sorted(counts):
+        print(f"  {counts[name]:>3}  {name}")
 
 
 if __name__ == "__main__":
@@ -1106,7 +1110,7 @@ if __name__ == "__main__":
 - [ ] **Step 3: Run the extractor**
 
 Run: `python scripts/sudu/extract.py`
-Expected output — these five numbers are the contract:
+Expected output — these numbers are the contract:
 
 ```
 records            : 413
@@ -1116,9 +1120,26 @@ records            : 413
 skipped            : 4
 hot sale entries   : 41
 media written      : 381 -> ...\scripts\sudu\out\media
+product sections   : 14
+   19  Bags and accessioes
+   12  Coats
+   42  Earbuds
+   18  Hair tools
+   87  Hoodies & Sweater & Jacket
+   18  Jersey
+    8  Mobile phones
+   26  Other accsessories
+   26  Pants
+   21  Perfumes
+   67  Shoes
+   16  Speakers
+   44  T-shirts
+    9  Watches
 ```
 
-There must be **no `UNKNOWN HEADERS` line**. If `records` is not 413, or that line appears, stop and investigate before continuing — a section name was not recognised, and every product after it would be silently mis-categorised.
+The per-section lines are right-aligned in three columns; compare the counts, not the spacing.
+
+Rows 1, 3 and 5 (sheet title, `HOT SALE list !!!`, the `Modle` column header) are expected skips and appear in the manifest `skipped` array alongside row 365. **If `records` is not 413, or `product sections` is not 14, stop and investigate before continuing.** A section name missing from the fixed vocabulary makes every later product silently inherit the previous section — that is exactly how the earlier draft sent the 44 `T-shirts` products to `perfumes`.
 
 - [ ] **Step 4: Verify the manifest shape**
 
