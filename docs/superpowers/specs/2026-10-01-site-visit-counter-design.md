@@ -176,10 +176,12 @@ export async function POST(req: Request) {
 ### `lib/bots.ts`
 
 ```ts
-const BOT = /bot|crawl|spider|slurp|facebookexternalhit|telegram|whatsapp|preview|curl|wget|python-requests|headless|phantomjs|pingdom|gtmetrix|lighthouse|ahrefs|semrush/i;
+const NO_HUMANO =
+  /bot|crawl|spider|slurp|facebookexternalhit|telegram|whatsapp|preview|curl|wget|python-requests|headless|phantomjs|pingdom|gtmetrix|lighthouse|ahrefs|semrush/i;
 
 export function esBot(userAgent: string): boolean {
-  return BOT.test(userAgent);
+  if (!userAgent.trim()) return true;
+  return NO_HUMANO.test(userAgent);
 }
 ```
 
@@ -238,7 +240,9 @@ The repo uses vitest. The only unit-testable new logic is the bot matcher.
 - Returns `false` for current Chrome, Safari, Firefox, Edge and iOS Safari user agents.
 - Returns `true` for `TelegramBot`, `WhatsApp`, `Googlebot`, `bingpreview`, `Slackbot`,
   `HeadlessChrome`, `curl/8.4.0` and `python-requests`.
-- Returns `false` for an empty string and for a bare `Mozilla/5.0`.
+- Returns `false` for a bare `Mozilla/5.0`.
+- Returns `true` for an empty string: no browser omits its user agent, so an absent one is
+  never a real page view. Rejecting it costs no genuine visit and closes a free inflation hole.
 
 The RPC cannot be unit tested without network access; it is verified directly against Supabase
 after the migration by calling the route twice and observing `total` grow by exactly two.
