@@ -17,7 +17,7 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import sharp from 'sharp';
 import {
   limpiarTitulo, detectarTemporada, detectarKit, esNino, esTemporadaReciente,
-  candidatosEquipo, renderTitulo, slugRetro, asignarSlugUnico,
+  candidatosEquipo, renderTitulo, slugRetro, asignarSlugUnico, capitalizarNombre,
 } from '../../lib/retro/naming.ts';
 import { resolverEquipo } from '../../lib/retro/teams.ts';
 
@@ -105,8 +105,11 @@ for (const album of albumes) {
   if (!equipo) sinEquipo.push({ albumId: album.albumId, origen: album.title, candidato });
 
   // Sin equipo resuelto se usa el candidato, sin los guiones con que el proveedor
-  // ofusca el nombre ('Zara-goza' -> 'Zara goza'); el álbum queda en el informe.
-  const nombreEquipo = equipo ? equipo.name : (candidato ?? limpio).replace(/-+/g, ' ');
+  // ofusca el nombre ('Zara-goza' -> 'Zara goza') y capitalizado, porque si no el
+  // título sale con el país en minúscula ('colombia' -> 'Colombia'). El álbum
+  // queda igualmente listado en el informe.
+  const respaldo = capitalizarNombre((candidato ?? limpio).replace(/-+/g, ' '));
+  const nombreEquipo = equipo ? equipo.name : respaldo;
   const title = renderTitulo({ kit, equipo: nombreEquipo, temporada, mangaLarga, versionJugador });
   // Sin equipo, `slugRetro` cae al título. Se le quita el prefijo
   // "Equipación retro <kit> " para no repetirlo en el slug
