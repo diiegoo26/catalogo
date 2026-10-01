@@ -26,9 +26,6 @@ export default function Header() {
 
           <SearchBar />
 
-          <Link href="/catalogo" className="btn btn-light hidden shrink-0 md:inline-flex">
-            Catálogo (PDF)
-          </Link>
           <BotonCesta />
         </div>
       </div>

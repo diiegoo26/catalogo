@@ -4,6 +4,7 @@ import DatosCliente, { type Datos } from './DatosCliente';
 import { useCesta } from './CestaProvider';
 import { telefonoValido } from '@/lib/cliente';
 import { PROVINCIAS } from '@/lib/provincias';
+import { etiquetaPrecio } from '@/lib/precios';
 
 const DATOS_VACIOS: Datos = { nombre: '', telefono: '', telegram: '' };
 const TELEGRAM_USER = process.env.NEXT_PUBLIC_TELEGRAM_USERNAME;
@@ -22,7 +23,10 @@ export default function CestaCheckout() {
   const copiarPlanB = async () => {
     const texto = [
       'Presupuesto:',
-      ...items.map((i, n) => `${n + 1}. ${i.title} — Talla ${i.talla}${i.color ? ` · ${i.color}` : ''} x${i.cantidad}`),
+      ...items.map((i, n) => {
+        const precio = typeof i.precio === 'number' ? etiquetaPrecio(i.precio) : 'a consultar';
+        return `${n + 1}. ${i.title} — Talla ${i.talla}${i.color ? ` · ${i.color}` : ''} x${i.cantidad} — ${precio}`;
+      }),
       `Nombre: ${datos.nombre}`,
       `Teléfono: ${datos.telefono}`,
       `Envío: ${localidad} (${provincia})`,

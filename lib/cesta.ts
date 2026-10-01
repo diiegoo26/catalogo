@@ -70,13 +70,14 @@ export function contar(items: ItemCesta[]): number {
 }
 
 /** Sum of known unit prices x quantity. A null price means "a consultar" and is
- * deliberately excluded rather than treated as 0 — see `resumenPrecio`. */
-export function totalEuros(items: ItemCesta[]): number {
+ * deliberately excluded rather than treated as 0 — see `hayPrecioPendiente`.
+ * Accepts ItemPresupuesto so the Telegram quote uses the same rule. */
+export function totalEuros(items: ItemPresupuesto[]): number {
   return items.reduce((t, it) => t + (typeof it.precio === 'number' ? it.precio * it.cantidad : 0), 0);
 }
 
 /** True when any line has no price, i.e. the total cannot be stated as a figure. */
-export function hayPrecioPendiente(items: ItemCesta[]): boolean {
+export function hayPrecioPendiente(items: ItemPresupuesto[]): boolean {
   return items.some((it) => typeof it.precio !== 'number');
 }
 

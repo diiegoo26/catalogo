@@ -62,6 +62,13 @@ export default async function Home() {
             <span>🚀 Solamente envíos peninsulares</span>
             <span aria-hidden className="hidden h-1 w-1 rounded-full bg-white/25 sm:block" />
             <span>📦 Envíos 10 - 15 días</span>
+            <span aria-hidden className="hidden h-1 w-1 rounded-full bg-white/25 sm:block" />
+            <Link
+              href="/envios-devoluciones"
+              className="underline underline-offset-2 transition hover:text-white"
+            >
+              Ver envíos y devoluciones
+            </Link>
           </div>
         </div>
       </section>

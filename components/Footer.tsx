@@ -22,16 +22,19 @@ export default function Footer() {
           <Link href="/resenas" className="transition hover:text-white">
             Reseñas
           </Link>
-          <Link href="/catalogo" className="transition hover:text-white">
-            Catálogo (PDF)
+          <Link href="/envios-devoluciones" className="transition hover:text-white">
+            Envíos y devoluciones
           </Link>
         </nav>
       </div>
-      <div className="border-t border-white/10">
-        <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-white/35">
-          KOVA ZONE · 🚀 Solamente envíos peninsulares · 📦 Envíos 10 - 15 días
-        </p>
-      </div>
+<div className="border-t border-white/10">
+          <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-white/35">
+            KOVA ZONE · 🚀 Solamente envíos peninsulares · 📦 Envíos 10 - 15 días ·{' '}
+            <Link href="/envios-devoluciones" className="underline underline-offset-2 hover:text-white/60">
+              Envíos y devoluciones
+            </Link>
+          </p>
+        </div>
     </footer>
   );
 }
