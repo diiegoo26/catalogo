@@ -1496,11 +1496,17 @@ if (recordsAccounted !== manifest.records.length) {
 }
 
 // ------------------------------------------------------------ emit the SQL
+// The generated file must reach the database in ONE execution: a Supabase MCP
+// call is its own transaction (verified — BEGIN without COMMIT leaves nothing
+// behind) and a tool-call argument has a size budget. The first version of this
+// emitter wrote one statement per row, 128 KB, and could not be delivered at
+// all. This form carries the same decisions in about 36 KB:
+//   - inserts collapse into one INSERT ... SELECT over a VALUES list,
+//   - ON CONFLICT (slug) DO NOTHING makes a re-run a no-op instead of a
+//     duplicate-slug failure,
+//   - the image filename is derived from the slug, which is exactly how the
+//     assets above were named (`<slug>-<n>.webp`).
 const q = (v) => (v === null || v === undefined ? 'NULL' : `'${String(v).replace(/'/g, "''")}'`);
-const jsonArray = (values) =>
-  values.length === 0
-    ? `'[]'::jsonb`
-    : `to_jsonb(ARRAY[${values.map(q).join(', ')}]::text[])`;
 
 const knownCategories = new Set([...categorySlugs, MOVILES.slug]);
 for (const i of inserted) {
@@ -1527,25 +1533,51 @@ for (const b of uniqueBrandsToCreate) {
 }
 if (uniqueBrandsToCreate.length) lines.push('');
 
-lines.push(`-- ${inserted.length} new products`);
-for (const i of inserted) {
-  const brandRef = i.brandSlug
-    ? `(SELECT id FROM brands WHERE slug = ${q(i.brandSlug)})`
-    : 'NULL';
+if (inserted.length) {
+  lines.push(`-- ${inserted.length} new products`);
+  lines.push('INSERT INTO products (title, slug, description, images, category_id, brand_id, is_featured)');
   lines.push(
-    'INSERT INTO products (title, slug, description, images, category_id, brand_id, is_featured)',
-    `VALUES (${q(i.title)}, ${q(i.slug)}, NULL, ${jsonArray(i.images)},`,
-    `        (SELECT id FROM categories WHERE slug = ${q(i.categorySlug)}), ${brandRef}, ${i.isFeatured});`,
+    "SELECT v.t, v.s, NULL,",
+    "       (CASE v.n WHEN 0 THEN '[]'::jsonb",
+    "                WHEN 1 THEN to_jsonb(ARRAY['/productos/sudu/' || v.s || '-1.webp'])",
+    "                ELSE to_jsonb(ARRAY['/productos/sudu/' || v.s || '-1.webp', '/productos/sudu/' || v.s || '-2.webp']) END),",
+    '       c.id, b.id, v.f',
+    'FROM (VALUES',
+  );
+  lines.push(
+    inserted
+      .map((i) => `  (${q(i.title)}, ${q(i.slug)}, ${q(i.categorySlug)}, ${q(i.brandSlug)}, ${i.isFeatured}, ${i.images.length})`)
+      .join(',\n'),
+  );
+  lines.push(
+    ') AS v(t text, s text, cslug text, bslug text, f boolean, n int)',
+    'JOIN categories c ON c.slug = v.cslug',
+    'LEFT JOIN brands b ON b.slug = v.bslug',
+    'ON CONFLICT (slug) DO NOTHING;',
+    '',
   );
 }
 
-lines.push('', `-- ${updated.length} image-only updates`);
-for (const u of updated) {
-  const setFeatured = u.isFeatured ? ', is_featured = TRUE' : '';
-  lines.push(`UPDATE products SET images = ${jsonArray(u.images)}${setFeatured} WHERE id = ${q(u.id)}::uuid;`);
+if (updated.length) {
+  lines.push(`-- ${updated.length} image-only updates`);
+  lines.push(
+    'UPDATE products p',
+    'SET images = u.i::jsonb, is_featured = COALESCE(u.f, p.is_featured)',
+    'FROM (VALUES',
+  );
+  lines.push(
+    updated
+      .map((u) => `  (${q(u.id)}::uuid, ARRAY[${u.images.map((x) => q(x)).join(', ')}]::text[], ${u.isFeatured ? 'true' : 'NULL'})`)
+      .join(',\n'),
+  );
+  lines.push(
+    ') AS u(id uuid, i text[], f boolean)',
+    'WHERE p.id = u.id;',
+    '',
+  );
 }
 
-lines.push('', 'COMMIT;');
+lines.push('COMMIT;');
 writeFileSync(new URL('apply.sql', OUT), lines.join('\n'), 'utf8');
 
 // ---------------------------------------------------------------- report
@@ -1775,7 +1807,7 @@ select id, title, slug, images, is_featured from public.products;
 
 - [ ] **Step 2: Apply the generated SQL**
 
-Run the Supabase MCP `execute_sql` tool with the full contents of `scripts/sudu/out/apply.sql`. It opens with `BEGIN;` and closes with `COMMIT;`, so the whole import either lands or does not.
+Run the Supabase MCP `execute_sql` tool with the full contents of `scripts/sudu/out/apply.sql` **in one call**. It opens with `BEGIN;` and closes with `COMMIT;`, so the whole import either lands or does not. It is expected to be roughly 36 KB. A Supabase MCP call is its own transaction, so splitting it across calls loses atomicity, and an argument that is too large is rejected before it reaches Postgres.
 
 If it reports a syntax error, **do not hand-edit the SQL to work around it** — fix the escaping in `build-plan.mjs`, re-run Task 4 Step 2, and apply the regenerated file.
 
