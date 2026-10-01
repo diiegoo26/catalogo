@@ -1,6 +1,8 @@
 // components/OpcionesPedido.tsx
 'use client';
 
+import Link from 'next/link';
+
 export type Opciones = { talla: string | null; cantidad: number; notas: string };
 
 export const OPCIONES_INICIALES: Opciones = { talla: null, cantidad: 1, notas: '' };
@@ -21,6 +23,14 @@ export default function OpcionesPedido({ tallas, valor, onChange }: Props) {
             <button key={t} type="button" data-active={valor.talla === t} onClick={() => set({ talla: t })} className="chip">{t}</button>
           ))}
         </div>
+        {tallas.length > 1 && (
+          <p className="mt-2 text-xs text-muted">
+            ¿Dudas con tu talla?{' '}
+            <Link href="/guia-de-tallas" className="font-medium text-brand underline underline-offset-2">
+              Consulta la guía de tallas
+            </Link>
+          </p>
+        )}
       </div>
 
       <label className="block">
