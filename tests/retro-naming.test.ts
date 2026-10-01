@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  limpiarTitulo, detectarTemporada, detectarKit, esNino,
+  limpiarTitulo, detectarTemporada, detectarKit, esNino, esTemporadaReciente,
   candidatosEquipo, renderTitulo, slugify, slugRetro, asignarSlugUnico,
 } from '../lib/retro/naming';
 
@@ -55,6 +55,19 @@ describe('esNino', () => {
   });
   it('does not flag adult kits', () => {
     expect(esNino('1998 England home')).toBe(false);
+  });
+});
+
+describe('esTemporadaReciente', () => {
+  it('rejects the current and previous season', () => {
+    expect(esTemporadaReciente('2026-27')).toBe(true);
+    expect(esTemporadaReciente('2026')).toBe(true);
+    expect(esTemporadaReciente('2025-26')).toBe(true);
+  });
+  it('keeps older seasons and a missing season', () => {
+    expect(esTemporadaReciente('2002')).toBe(false);
+    expect(esTemporadaReciente('2024-25')).toBe(false);
+    expect(esTemporadaReciente(null)).toBe(false);
   });
 });
 

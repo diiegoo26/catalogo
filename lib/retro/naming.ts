@@ -87,6 +87,18 @@ export function esNino(texto: string): boolean {
   return /\b(kid|kids|youth|junior)\b|ni[ñn]o/i.test(texto);
 }
 
+// Temporada actual (2026-27) y la inmediatamente anterior (2025-26). Un kit de
+// la temporada en curso no es un clásico: además de no serlo, su ficha tomaría
+// el flujo KitCustomizer en vez de CompraEquipacion (esKitTemporada en
+// app/producto/[slug]/page.tsx) y aparecería en las páginas de equipo, que
+// filtran season = '2026-27'.
+const TEMPORADAS_RECIENTES = /^(2025|2026)\b/;
+
+/** true para la temporada actual o la anterior: no entran en la sección retro. */
+export function esTemporadaReciente(temporada: string | null): boolean {
+  return temporada !== null && TEMPORADAS_RECIENTES.test(temporada);
+}
+
 /** Candidatos a equipo, del más largo al más corto. NUNCA decide: solo propone. */
 export function candidatosEquipo(texto: string, temporada: string | null): string[] {
   let t = ` ${texto} `;
