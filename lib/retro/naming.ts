@@ -30,12 +30,17 @@ const COLORES = new Set([
 
 // Incluye las mismas palabras que limpia `limpiarTitulo`, para que la función
 // dé el mismo resultado tanto sobre el título crudo como sobre el ya limpiado.
+// Los términos de competición ('liga', 'final', 'ucl', 'edition') están porque
+// el proveedor los pega al equipo sin separador ("Real Madrhome liga",
+// "Real MadrUCL final") y si no se filtran ensucian el nombre del equipo.
 const CUALIFICADORES = new Set([
   'home', 'away', 'third', 'fourth', 'gk', 'goalkeeper', 'player', 'version',
-  'long', 'sleeve', 'sleeves', 'casual', 'street', 'style', 'anniversary',
-  '125th', '100', 'year', 'special', 'kit', 'kids', 'kid',
+  'versión', 'jugador', 'long', 'sleeve', 'sleeves', 'manga', 'larga',
+  'casual', 'street', 'style', 'anniversary', '125th', '100', 'year',
+  'special', 'kit', 'kids', 'kid',
   'model', 'jersey', 'shirt', 'vintage', 'football', 'soccer', 'camiseta',
   'size', 'limited',
+  'liga', 'final', 'ucl', 'edition', 'centennial', 'copa',
 ]);
 
 /** Quita el spam SEO, los tallajes y colapsa el espaciado. */
@@ -119,6 +124,19 @@ export function candidatosEquipo(texto: string, temporada: string | null): strin
     out.push(utiles.slice(0, n).join(' '));
   }
   return out;
+}
+
+/**
+ * Nombre de respaldo legible cuando ningún equipo casa: 'colombia' -> 'Colombia',
+ * 'soviet CCCP' -> 'Soviet CCCP'. Las palabras ya en mayúscula (siglas) se dejan
+ * intactas y los números no se tocan.
+ */
+export function capitalizarNombre(s: string): string {
+  return s.replace(/[^\s]+/g, (palabra) =>
+    palabra.length >= 2 && palabra === palabra.toUpperCase()
+      ? palabra
+      : palabra.charAt(0).toUpperCase() + palabra.slice(1),
+  );
 }
 
 const LABEL_KIT: Record<Kit, string> = {

@@ -61,6 +61,21 @@ describe('resolverEquipo', () => {
     expect(resolverEquipo('ATM', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't16' } });
     expect(resolverEquipo('Lis-bon', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't17' } });
   });
+  it('resolves the team name the supplier glued to the next word', () => {
+    // El título real es "01-02 Real MadrUCL final jerseys vintage …", y de él
+    // sale el candidato 'Real MadrUCL final': no hay separador entre el equipo
+    // y la palabra siguiente.
+    expect(resolverEquipo('Real MadrUCL final', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't3' } });
+    expect(resolverEquipo('Real Madrhome liga', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't3' } });
+    expect(resolverEquipo('Real Madrihome', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't3' } });
+  });
+  it('does not let a short alias key act as a prefix', () => {
+    // 'ro' es alias de Real Madrid, pero como prefijo casaría con media liga.
+    // Por debajo de 6 caracteres solo vale la igualdad.
+    expect(resolverEquipo('Rosenborg', equipos)).toEqual({ estado: 'sin-match' });
+    expect(resolverEquipo('Romania', equipos)).toEqual({ estado: 'sin-match' });
+    expect(resolverEquipo('RO', equipos)).toMatchObject({ estado: 'ok', equipo: { id: 't3' } });
+  });
   it('reports an unknown team instead of inventing one', () => {
     expect(resolverEquipo('Wakanda FC', equipos)).toEqual({ estado: 'sin-match' });
   });
