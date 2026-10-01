@@ -190,19 +190,30 @@ for (const m of matches) {
     images,
     categorySlug: p.categorySlug,
     brandSlug: p.brandSlug,
+    brandKey: p.brandKey,
     brandSource: p.knownBrandSlug ? 'existing' : p.inferredBrandSlug ? 'inferred' : p.brandSlug ? 'approved' : 'none',
     isFeatured: p.featured,
     weidianId: p.weidian_id,
   });
 }
 
+// Only the `safe` tier is applied automatically. A `probable` match is
+// evidence of a product *family*, not of the same product: on this workbook
+// roughly two thirds of them pointed at the wrong row (Jabra elite 75T ->
+// Elite 7 Pro, Samsung watch 9 -> Galaxy Watch Ultra, Apple Pencil 2 ->
+// Pencil 3). They are reported and written nowhere.
 const updated = [];
+const probableOnly = [];
 const matchedNoPhoto = [];
 const assetFailed = [];
 for (const m of matches) {
   if (m.tier === 'none') continue;
   if (conflicted.has(m)) continue;
   const p = m.prepared;
+  if (m.tier === 'probable') {
+    probableOnly.push({ row: p.row, title: p.title, target: m.target, reason: m.reason });
+    continue;
+  }
   if (p.images.length === 0) {
     matchedNoPhoto.push({ row: p.row, title: p.title, target: m.target });
     continue;
@@ -227,9 +238,39 @@ for (const m of matches) {
   });
 }
 
+// --------------------------------------------------- possible duplicates
+// Signalling for the human gate only: which new products look like something
+// the catalog already has under a different title. Reported, never acted on.
+const existingByCategoryBrand = new Map();
+for (const q of existing) {
+  if (!q.brandKey) continue;
+  const key = `${q.categorySlug}|${q.brandKey}`;
+  const list = existingByCategoryBrand.get(key) ?? [];
+  list.push(q);
+  existingByCategoryBrand.set(key, list);
+}
+const distinctiveWords = (text) =>
+  [...new Set(normalizeKey(text).split(' '))]
+    .filter((token) => token.length >= 4 && !/^\d+$/.test(token) && !brandTokens.has(token));
+
+for (const ins of inserted) {
+  const pool = ins.brandKey
+    ? existingByCategoryBrand.get(`${ins.categorySlug}|${ins.brandKey}`) ?? []
+    : [];
+  const words = new Set(distinctiveWords(ins.title));
+  ins.possibleDuplicates = words.size === 0
+    ? []
+    : pool
+      .filter((q) => distinctiveWords(q.title).some((token) => words.has(token)))
+      .slice(0, 3)
+      .map((q) => ({ slug: q.slug, title: q.title }));
+}
+const insertsWithPossibleDuplicate = inserted.filter((i) => i.possibleDuplicates.length > 0).length;
+
 // ------------------------------------------------------------ partition check
 const buckets = {
   updated: updated.length,
+  probableOnly: probableOnly.length,
   matchedNoPhoto: matchedNoPhoto.length,
   assetFailed: assetFailed.length,
   conflict: [...conflicted].length,
@@ -238,7 +279,7 @@ const buckets = {
   skippedRow: manifest.skipped.length,
 };
 const recordsAccounted =
-  buckets.updated + buckets.matchedNoPhoto + buckets.assetFailed
+  buckets.updated + buckets.probableOnly + buckets.matchedNoPhoto + buckets.assetFailed
   + buckets.conflict + buckets.inserted + buckets.unresolvedSection;
 if (recordsAccounted !== manifest.records.length) {
   throw new Error(
@@ -313,6 +354,7 @@ const md = [
   `| Workbook records | ${manifest.records.length} |`,
   ...Object.entries(buckets).map(([k, v]) => `| ${k} | ${v} |`),
   `| New brands to create | ${uniqueBrandsToCreate.length} |`,
+  `| New products resembling an existing one | ${insertsWithPossibleDuplicate} |`,
   '',
   '## Categories to create',
   '',
@@ -335,12 +377,23 @@ const md = [
     .sort((a, b) => b.count - a.count)
     .map((p) => `| \`${p.from}\` | ${p.proposedName} | ${p.count} | ${p.samples.join(' · ')} |`),
   '',
-  '## Probable matches — image will be replaced',
+  '## Probable matches — nothing written, review manually',
+  '',
+  'Evidence of the same product *family*, not of the same product. None of these is applied.',
   '',
   '| Workbook title | Existing product | Why |',
   '| --- | --- | --- |',
-  ...matches.filter((m) => m.tier === 'probable')
-    .map((m) => `| ${m.prepared.title} | ${m.target.title} (\`${m.target.slug}\`) | ${m.reason} |`),
+  ...probableOnly.map((p) => `| ${p.title} | ${p.target.title} (\`${p.target.slug}\`) | ${p.reason} |`),
+  '',
+  '## Possible duplicates among the new products',
+  '',
+  'New products in the same category and brand that share a distinctive word with an existing',
+  'product. Nothing is changed automatically — check these before or after applying.',
+  '',
+  '| New product | Existing candidates |',
+  '| --- | --- |',
+  ...inserted.filter((i) => i.possibleDuplicates.length)
+    .map((i) => `| ${i.title} (\`${i.slug}\`) | ${i.possibleDuplicates.map((c) => `${c.title} (\`${c.slug}\`)`).join(' · ')} |`),
   '',
   '## Conflicts — two workbook rows, one product, nothing written',
   '',
@@ -392,14 +445,16 @@ writeFileSync(
 );
 writeFileSync(
   new URL('apply-plan.json', OUT),
-  JSON.stringify({ buckets, inserted, updated, conflicts, unresolvedSection, brandsToCreate: uniqueBrandsToCreate }, null, 2),
+  JSON.stringify({ buckets, inserted, updated, probableOnly, matchedNoPhoto, assetFailed, conflicts, unresolvedSection, insertsWithPossibleDuplicate, brandsToCreate: uniqueBrandsToCreate }, null, 2),
   'utf8',
 );
 
 console.log(`catalog products : ${products.length}`);
 console.log(`inserted         : ${inserted.length}`);
-console.log(`updated          : ${updated.length}`);
+console.log(`updated (safe)   : ${updated.length}`);
+console.log(`probable no-write: ${probableOnly.length}`);
 console.log(`matched no photo : ${matchedNoPhoto.length}`);
+console.log(`possible dupes   : ${insertsWithPossibleDuplicate}`);
 console.log(`asset failed     : ${assetFailed.length}`);
 console.log(`conflicts        : ${conflicts.length}`);
 console.log(`unresolved categ.: ${unresolvedSection.length}`);
