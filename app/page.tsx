@@ -2,10 +2,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BloqueConfianza from '@/components/BloqueConfianza';
 import CategoryGrid from '@/components/CategoryGrid';
+import { ProductGrid } from '@/components/ProductCard';
 import ResenasDestacadas from '@/components/ResenasDestacadas';
+import { tileDeInvierno } from '@/lib/invierno';
+import { diversificarPorCategoria } from '@/lib/novedades';
 import {
   getCategoriesWithCounts,
+  getNovedadesPorCategoria,
   getNotaTienda,
+  getProducts,
   getResenasTienda,
   getVisitasTienda,
 } from '@/lib/queries';
@@ -13,11 +18,27 @@ import {
 // Líneas de producto que anuncia la tienda (contenido del cliente).
 const LINEAS = ['👟 Sneakers', '👕 Streetwear', '👜 Bolsos', '⌚ Relojes', '💎 Accesorios'];
 
+// Cuántas novedades muestra la portada y cuántas se piden por categoría.
+// Se piden dos por categoría para poder repartir: con muchas categorías la
+// primera ronda ya llena la vitrina con una de cada una, y con pocas la segunda
+// ronda completa los huecos. La grilla expande kits, así que el tope final de
+// `NOVEDADES` se aplica después de expandir.
+const NOVEDADES = 8;
+const NOVEDADES_POR_CATEGORIA = 2;
+
 export default async function Home() {
   // Nunca enlazamos a una categoría vacía.
   const categories = (await getCategoriesWithCounts()).filter((c) => c.product_count > 0);
   const resenas = await getResenasTienda(3);
+  const novedades = diversificarPorCategoria(
+    await getNovedadesPorCategoria(categories.map((c) => c.id), NOVEDADES_POR_CATEGORIA),
+    { porCategoria: NOVEDADES_POR_CATEGORIA, max: NOVEDADES }
+  );
   const [nota, visitas] = await Promise.all([getNotaTienda(), getVisitasTienda()]);
+  // Invierno no es una categoría, es una marca a mano en la columna
+  // `products.is_temporada_invierno` (supabase/2026-10-14-temporada-invierno.sql).
+  // Se trae la lista completa solo para contar el total del tile de la grilla.
+  const invierno = await getProducts({ isTemporadaInvierno: true });
 
   return (
     <>
@@ -27,14 +48,14 @@ export default async function Home() {
         <div aria-hidden className="kz-aurora absolute inset-0" />
         <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-white/10" />
 
-        <div className="relative flex flex-col items-center gap-6 px-6 py-9 text-center sm:flex-row sm:items-center sm:gap-8 sm:px-10 sm:py-11 sm:text-left">
+        <div className="relative flex flex-col items-center gap-4 px-6 py-6 text-center sm:flex-row sm:items-center sm:gap-8 sm:px-10 sm:py-11 sm:text-left">
           <Image
             src="/logo.png"
             alt=""
             width={112}
             height={112}
             priority
-            className="h-24 w-24 shrink-0 rounded-full shadow-[0_18px_44px_rgba(46,123,255,0.45)] sm:h-28 sm:w-28"
+            className="h-20 w-20 shrink-0 rounded-full shadow-[0_18px_44px_rgba(46,123,255,0.45)] sm:h-28 sm:w-28"
           />
 
           <div className="min-w-0">
@@ -43,11 +64,11 @@ export default async function Home() {
               Tu zona. Tu estilo. <span aria-hidden>🏁</span>
             </h1>
 
-            <ul className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
+            <ul className="mt-3 flex flex-wrap justify-center gap-2 sm:mt-4 sm:justify-start">
               {LINEAS.map((l) => (
                 <li
                   key={l}
-                  className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/85 backdrop-blur"
+                  className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs font-medium text-white/85 backdrop-blur sm:px-3 sm:py-1.5 sm:text-sm"
                 >
                   {l}
                 </li>
@@ -57,8 +78,8 @@ export default async function Home() {
         </div>
 
         {/* Condiciones de envío: la información que decide la compra */}
-        <div className="relative border-t border-white/10 bg-white/5 px-6 py-3.5 sm:px-10">
-          <div className="flex flex-col items-center gap-2 text-sm text-white/70 sm:flex-row sm:justify-center sm:gap-6">
+        <div className="relative border-t border-white/10 bg-white/5 px-6 py-3 sm:px-10 sm:py-3.5">
+          <div className="flex flex-col items-center gap-1.5 text-sm text-white/70 sm:flex-row sm:justify-center sm:gap-6">
             <span>🚀 Solamente envíos peninsulares</span>
             <span aria-hidden className="hidden h-1 w-1 rounded-full bg-white/25 sm:block" />
             <span>📦 Envíos 10 - 15 días</span>
@@ -75,17 +96,36 @@ export default async function Home() {
 
       <BloqueConfianza media={nota.media} opiniones={nota.total} visitas={visitas} />
 
+      {/* Novedades — la mercancía va antes que el índice de navegación */}
+      {novedades.length > 0 && (
+        <section className="mt-12">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Novedades</h2>
+            <Link href="/catalogo" className="btn btn-outline print:hidden">
+              Ver todo el catálogo
+            </Link>
+          </div>
+          <ProductGrid products={novedades} max={NOVEDADES} />
+        </section>
+      )}
+
       {/* Categorías — única navegación de la portada */}
       <section className="mt-12">
         <h2 className="mb-6 font-display text-2xl font-bold tracking-tight sm:text-3xl">Categorías</h2>
         <CategoryGrid
-          items={categories.map((c) => ({
-            id: c.id,
-            name: c.name,
-            image: c.image_url,
-            count: c.product_count,
-            href: `/${c.slug}`,
-          }))}
+          items={[
+            // Vidriera de temporada, primera y armada a mano: no sale de `categories`
+            // porque invierno no es una categoría. Se omite si está vacía, con la misma
+            // regla que las categorías.
+            ...(invierno.length > 0 ? [tileDeInvierno(invierno.length)] : []),
+            ...categories.map((c) => ({
+              id: c.id,
+              name: c.name,
+              image: c.image_url,
+              count: c.product_count,
+              href: `/${c.slug}`,
+            })),
+          ]}
         />
       </section>
 

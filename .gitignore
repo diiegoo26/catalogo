@@ -56,3 +56,5 @@ scripts/sudu/out/
 
 # Salida del extractor retro (manifest, informe, snapshot de equipos)
 /scripts/retro/out/
+# Local AI runtime state
+.atl/
