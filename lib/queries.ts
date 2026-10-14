@@ -88,7 +88,7 @@ export async function categoryHasGenders(categoryId: string): Promise<boolean> {
 // ----- Productos -----
 export type ProductFilters = {
   categoryId?: string; brandId?: string; teamId?: string;
-  gender?: string; season?: string; isRetro?: boolean;
+  gender?: string; season?: string; isRetro?: boolean; isTemporadaInvierno?: boolean;
 };
 export async function getProducts(f: ProductFilters = {}) {
   let q = supabase.from('products').select(CARD).order('created_at', { ascending: false });
@@ -98,9 +98,50 @@ export async function getProducts(f: ProductFilters = {}) {
   if (f.season)   q = q.eq('season', f.season);
   if (f.gender)     q = q.eq('gender', f.gender);
   if (f.isRetro !== undefined) q = q.eq('is_retro', f.isRetro);
+  if (f.isTemporadaInvierno !== undefined) q = q.eq('is_temporada_invierno', f.isTemporadaInvierno);
   const { data } = await q;
   return (data ?? []) as unknown as ProductCardData[];
 }
+
+/** Producto de portada: lo que pinta la tarjeta más de qué categoría viene. */
+export type NovedadProducto = ProductCardData & { category_id: string | null; created_at: string };
+
+/**
+ * El producto más nuevo de cada categoría.
+ *
+ * No sirve una sola consulta ordenada por fecha: las altas van por lotes, así que
+ * los primeros cientos de productos pueden ser todos de la misma categoría (hoy
+ * los 500 más nuevos son de Equipaciones, sobre 3087). Pedir una página corta por
+ * categoría es la única forma de garantizar variedad. Son tantas consultas en
+ * paralelo como categorías tenga la tienda, y ese número es acotado.
+ */
+export async function getNovedadesPorCategoria(
+  categoryIds: string[],
+  porCategoria = 2
+): Promise<NovedadProducto[]> {
+  if (!categoryIds.length) return [];
+
+  const paginas = await Promise.all(
+    categoryIds.map((categoryId) =>
+      supabase
+        .from('products')
+        .select('id,title,slug,images,category_id,created_at,brand:brands(name)')
+        .eq('category_id', categoryId)
+        .order('created_at', { ascending: false })
+        .limit(porCategoria)
+    )
+  );
+
+  return paginas
+    .flatMap((r) => (r.data ?? []) as unknown as NovedadProducto[])
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+// La membresía de invierno ya no se calcula acá: la decide la columna
+// `products.is_temporada_invierno` (ver supabase/2026-10-14-temporada-invierno.sql) y
+// se lee con `getProducts({ isTemporadaInvierno: true })`. Eso bajó la consulta de
+// 324 filas / 64 KB a 89 filas / 19 KB, y deja la curaduría en manos del dueño. La
+// regla que pobló la columna quedó en `lib/invierno.ts`, como especificación del SQL.
 
 export type CatalogProduct = ProductCardData & {
   category: { name: string; slug: string; sort_order: number };

@@ -16,6 +16,8 @@ const REDIRECCIONES_CATEGORIA: [string, string][] = [
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
+      // Imagenes subidas a Supabase Storage (bucket publico del proyecto)
+      { protocol: 'https', hostname: 'lekygyoeiviygjdqmvom.supabase.co' },
       { protocol: 'https', hostname: 'www.footylogos.com' },
       // Fotos reales de las equipaciones 2026-27 (galerias de FootyLogos)
       { protocol: 'https', hostname: 'assets.footylogos.com' },

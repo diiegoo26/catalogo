@@ -37,8 +37,11 @@ function expandByVariant(products: ProductCardData[]): CardEntry[] {
   return entries;
 }
 
-export function ProductGrid({ products }: { products: ProductCardData[] }) {
-  const entries = expandByVariant(products);
+// `max` caps the grid AFTER variant expansion, so a section can promise a fixed
+// number of visible cards rather than a fixed number of fetched products.
+export function ProductGrid({ products, max }: { products: ProductCardData[]; max?: number }) {
+  const expanded = expandByVariant(products);
+  const entries = max === undefined ? expanded : expanded.slice(0, max);
   if (!entries.length)
     return (
       <div className="rounded-card border border-line bg-mist px-6 py-16 text-center">
