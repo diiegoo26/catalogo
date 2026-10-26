@@ -37,6 +37,21 @@ yarn-error.log*
 !.env.local.example
 !.env*.example
 
+# credentials: nunca al repo (el candado real está en .githooks/pre-commit)
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+.pgpass
+.npmrc
+.netrc
+.git-credentials
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
 # vercel
 .vercel
 

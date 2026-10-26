@@ -1,0 +1,167 @@
+#!/usr/bin/env node
+// .githooks/pre-commit
+//
+// Candado de entrada de git: frena el commit si el índice tiene claves o
+// archivos de entorno. Mira SOLO lo que estás por commitear, no el historial,
+// así nunca te bloquea por algo viejo.
+//
+// Activar (lo hace `npm install` vía scripts/setup-hooks.mjs):
+//     git config core.hooksPath .githooks
+//
+// Escape deliberado y visible, para falsos positivos:
+//     ALLOW_SECRET_COMMIT=1 git commit ...
+//
+// Sin dependencias: usa `git grep --cached`, que busca en el índice y ya
+// ignora binarios con -I.
+
+const { execFileSync } = require('node:child_process');
+
+const ROJO = '\x1b[31m';
+const AMARILLO = '\x1b[33m';
+const GRIS = '\x1b[90m';
+const NEGRITA = '\x1b[1m';
+const RESET = '\x1b[0m';
+
+if (process.env.ALLOW_SECRET_COMMIT === '1') {
+  console.error(
+    `${AMARILLO}⚠ pre-commit: revisión de claves omitida a propósito (ALLOW_SECRET_COMMIT=1)${RESET}`,
+  );
+  process.exit(0);
+}
+
+function git(args) {
+  return execFileSync('git', args, {
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
+// --- 1. Rutas que nunca deben entrar al repo -------------------------------
+
+// Las plantillas sí se versionan: solo llevan nombres de variables, no valores.
+const SUFIJO_PLANTILLA = /\.(example|sample|template)$/i;
+
+function esRutaProhibida(ruta) {
+  const base = ruta.split('/').pop().toLowerCase();
+
+  // .env  /  .env.local  /  .env.production  (las plantillas quedan afuera)
+  if (base === '.env' || base.startsWith('.env.')) return !SUFIJO_PLANTILLA.test(base);
+
+  if (/\.(pem|key|p12|pfx|jks|keystore|ppk)$/.test(base)) return true;
+  if (/^id_(rsa|dsa|ecdsa|ed25519)(\.pub)?$/.test(base)) return true;
+  if (['.npmrc', '.netrc', '.pgpass', '.git-credentials'].includes(base)) return true;
+
+  return false;
+}
+
+// --- 2. Patrones de claves en el contenido --------------------------------
+
+// POSIX ERE: sin grupos no capturantes ni \b, para que funcione igual en
+// Windows, macOS y Linux.
+const PATRONES = [
+  {
+    nombre: 'JWT / clave de Supabase',
+    re: 'eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+',
+  },
+  {
+    nombre: 'token de bot de Telegram',
+    re: '[0-9]{8,10}:[A-Za-z0-9_-]{30,}',
+  },
+  {
+    nombre: 'token de GitHub',
+    re: '(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})',
+  },
+  {
+    nombre: 'clave de OpenAI',
+    re: 'sk-[A-Za-z0-9_-]{20,}',
+  },
+  {
+    nombre: 'clave secreta de Stripe',
+    re: '(sk|rk)_live_[A-Za-z0-9]{20,}',
+  },
+  {
+    nombre: 'clave de AWS',
+    re: 'AKIA[0-9A-Z]{16}',
+  },
+  {
+    nombre: 'clave privada',
+    re: '-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----',
+  },
+  {
+    nombre: 'clave secreta de Supabase',
+    re: '(sb_secret_[A-Za-z0-9_-]{10,}|sbp_[a-f0-9]{40})',
+  },
+  {
+    // Cualquier VAR_SECRETA=con_valor_largo. La plantilla documental queda
+    // afuera por el filtro de placeholders de abajo.
+    nombre: 'variable secreta con valor asignado',
+    re: '(SUPABASE_SERVICE_ROLE_KEY|TELEGRAM_BOT_TOKEN|[A-Z0-9_]*(SECRET|API_KEY|PRIVATE_KEY|ACCESS_TOKEN))[[:space:]]*=[[:space:]]*[A-Za-z0-9_./:+-]{16,}',
+  },
+];
+
+// Valores de mentira que sí pueden vivir en docs y plantillas.
+const ES_PLACEHOLDER = /(tu[-_]|your[-_]|example|ejemplo|placeholder|changeme|reemplazar|xxx|<[^>]*>|\.\.\.)/i;
+
+// Leer del entorno no es filtrar una clave: `process.env.X` es una referencia,
+// no un valor. Mismo criterio para las demás formas de indirección.
+const ES_REFERENCIA = /process\.env|import\.meta\.env|os\.environ|\$\{|\$[A-Z][A-Z0-9_]*/;
+
+function buscarEnIndice(re) {
+  try {
+    return git(['grep', '--cached', '-n', '-I', '-E', '-e', re]).split('\n').filter(Boolean);
+  } catch (error) {
+    if (error.status === 1) return []; // git grep: 1 = sin coincidencias
+    throw error;
+  }
+}
+
+// --- 3. Revisión ---------------------------------------------------------
+
+const rutasProhibidas = git(['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR'])
+  .split('\0')
+  .filter(Boolean)
+  .filter(esRutaProhibida);
+
+const clavesDetectadas = [];
+for (const patron of PATRONES) {
+  for (const linea of buscarEnIndice(patron.re)) {
+    if (ES_PLACEHOLDER.test(linea) || ES_REFERENCIA.test(linea)) continue;
+    const [ruta, numero] = linea.split(':');
+    clavesDetectadas.push({ patron: patron.nombre, ruta, numero, linea });
+  }
+}
+
+if (!rutasProhibidas.length && !clavesDetectadas.length) process.exit(0);
+
+console.error(`\n${ROJO}${NEGRITA}✖ pre-commit: esto no se commitea.${RESET}\n`);
+
+if (rutasProhibidas.length) {
+  console.error(`${NEGRITA}Archivos que guardan secretos:${RESET}`);
+  for (const ruta of rutasProhibidas) console.error(`  ${ROJO}${ruta}${RESET}`);
+  console.error('');
+}
+
+if (clavesDetectadas.length) {
+  console.error(`${NEGRITA}Claves dentro del contenido:${RESET}`);
+  for (const c of clavesDetectadas) {
+    console.error(`  ${ROJO}${c.ruta}:${c.numero}${RESET}  ${GRIS}${c.patron}${RESET}`);
+  }
+  console.error('');
+}
+
+console.error(`${NEGRITA}Qué hacer:${RESET}`);
+console.error(
+  `  · Sacalo del commit:   ${GRIS}git restore --staged <archivo>${RESET}`,
+);
+console.error(
+  `  · Mové el valor a ${GRIS}.env.local${RESET} (ignorado por git) y dejá una plantilla vacía en el archivo versionado`,
+);
+console.error(
+  `  · Si ya se publicó, rotá la clave: un commit después del push no la borra${RESET}`,
+);
+console.error(
+  `  · Si es un falso positivo: ${GRIS}ALLOW_SECRET_COMMIT=1 git commit ...${RESET}\n`,
+);
+
+process.exit(1);

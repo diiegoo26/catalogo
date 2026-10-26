@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "prepare": "node scripts/setup-hooks.mjs",
     "telegram:whoami": "node scripts/telegram-whoami.mjs"
   },
   "dependencies": {
