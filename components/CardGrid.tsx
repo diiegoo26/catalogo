@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { needsDirectImage } from '@/lib/media';
 
 export type CardItem = { id: string; name: string; href: string; image?: string | null; meta?: string };
 
@@ -34,6 +35,7 @@ export default function CardGrid({
                     alt=""
                     fill
                     sizes="(min-width:1024px) 25vw, 50vw"
+                    unoptimized={needsDirectImage(i.image)}
                     className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
                   />
                 ) : (
@@ -57,6 +59,7 @@ export default function CardGrid({
                     alt=""
                     fill
                     sizes="(min-width:1024px) 25vw, 50vw"
+                    unoptimized={needsDirectImage(i.image)}
                     className={
                       variant === 'photo'
                         ? 'object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]'

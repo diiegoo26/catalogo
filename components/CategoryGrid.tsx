@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { isLocalCatalogImage } from '@/lib/media';
+import { isLocalCatalogImage, needsDirectImage } from '@/lib/media';
 
 export type CategoryTile = { id: string; name: string; href: string; image?: string | null; count?: number };
 
@@ -62,6 +62,7 @@ function Tile({ item }: { item: CategoryTile }) {
             alt=""
             fill
             sizes="(min-width:1024px) 270px, (min-width:640px) 33vw, 50vw"
+            unoptimized={needsDirectImage(item.image)}
             onError={() => setBroken(true)}
             className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
           />

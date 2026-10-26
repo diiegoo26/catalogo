@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { needsDirectImage } from '@/lib/media';
 import type { BrandWithCount } from '@/lib/types';
 
 /** Cabecera de marca: logo, nombre y numero de productos. */
@@ -8,7 +9,14 @@ export default function BrandHeader({ brand }: { brand: BrandWithCount }) {
     <div className="mb-8 flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
       <div className="relative size-16 shrink-0 rounded-2xl border border-line bg-white shadow-sm">
         {brand.logo_url ? (
-          <Image src={brand.logo_url} alt={brand.name} fill sizes="64px" className="object-contain p-2.5" />
+          <Image
+            src={brand.logo_url}
+            alt={brand.name}
+            fill
+            sizes="64px"
+            unoptimized={needsDirectImage(brand.logo_url)}
+            className="object-contain p-2.5"
+          />
         ) : (
           <span className="absolute inset-0 grid place-items-center font-display text-2xl font-bold text-ink/20">
             {brand.name[0]}
