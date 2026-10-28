@@ -15,6 +15,10 @@ const REDIRECCIONES_CATEGORIA: [string, string][] = [
 
 const nextConfig: NextConfig = {
   images: {
+    // El optimizador de imagenes de Vercel agoto su cuota (HTTP 402
+    // OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED en /_next/image). Los assets
+    // locales ya son webp optimizados, asi que se sirven tal cual desde el CDN.
+    unoptimized: true,
     remotePatterns: [
       // Imagenes subidas a Supabase Storage (bucket publico del proyecto)
       { protocol: 'https', hostname: 'lekygyoeiviygjdqmvom.supabase.co' },

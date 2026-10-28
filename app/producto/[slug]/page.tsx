@@ -8,6 +8,7 @@ import PrecioProducto from '@/components/PrecioProducto';
 import ProductPurchase from '@/components/ProductPurchase';
 import Resenas from '@/components/Resenas';
 import { descripcionVisible } from '@/lib/descripcion';
+import { localizarImagen } from '@/lib/externos';
 import { groupKitsByVariant } from '@/lib/kits';
 import { precioDe } from '@/lib/precios';
 import { getProductBySlug, getPlayers, getTeamPatches, getNotaProducto, getResenasProducto } from '@/lib/queries';
@@ -30,6 +31,11 @@ export default async function ProductoPage({ params, searchParams }: { params: P
   const titulo = selected ? selected.title : p.title;
   const initialIndex = selected ? Math.max(0, p.images.indexOf(selected.images[0])) : 0;
   const desc = descripcionVisible(p.description);
+  // `groupKitsByVariant` ya leyó los nombres remotos (línea de arriba); recién acá
+  // traducimos a las copias de public/externos, que es lo único que ve el navegador.
+  // El orden no cambia, así que `initialIndex` sigue apuntando a la misma foto.
+  const imagenesLocales = p.images.map((src) => localizarImagen(src) ?? src);
+  const imagenPrincipal = localizarImagen(p.images[0]);
 
   const esKitTemporada = Boolean(p.team && p.season === TEMPORADA_ACTUAL);
   // Toda equipación lleva selector de calidad (Fans/Jugador), tenga o no
@@ -65,7 +71,7 @@ export default async function ProductoPage({ params, searchParams }: { params: P
     <>
       <Breadcrumbs items={crumbs} />
       <div className="grid gap-8 md:grid-cols-2 md:gap-10">
-        <ProductGallery key={selected?.kind ?? 'default'} images={p.images} title={p.title} initialIndex={initialIndex} />
+        <ProductGallery key={selected?.kind ?? 'default'} images={imagenesLocales} title={p.title} initialIndex={initialIndex} />
         <div>
           {p.brand && <p className="eyebrow mb-2">{p.brand.name}</p>}
           <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{titulo}</h1>
@@ -74,16 +80,16 @@ export default async function ProductoPage({ params, searchParams }: { params: P
           <div className="mt-6">
             {esKitTemporada ? (
               <KitCustomizer key={selected?.kind ?? 'default'} title={selected ? `${p.title} — ${selected.title}` : p.title} variants={p.variants}
-                players={players} patches={patches} imageUrl={p.images[0]} categoria={p.category.slug} />
+                players={players} patches={patches} imageUrl={imagenPrincipal} categoria={p.category.slug} />
             ) : esEquipacion ? (
               <CompraEquipacion key={selected?.kind ?? 'default'} title={selected ? `${p.title} — ${selected.title}` : p.title}
-                variants={p.variants} imageUrl={p.images[0]} categoria={p.category.slug} />
+                variants={p.variants} imageUrl={imagenPrincipal} categoria={p.category.slug} />
             ) : (
               <>
                 <div className="mb-5">
                   <PrecioProducto categoria={p.category.slug} precio={p.price} />
                 </div>
-                <ProductPurchase title={p.title} variants={p.variants} imageUrl={p.images[0]} categoria={p.category.slug}
+                <ProductPurchase title={p.title} variants={p.variants} imageUrl={imagenPrincipal} categoria={p.category.slug}
                   precio={precioDe(p.category.slug, p.price)} />
               </>
             )}

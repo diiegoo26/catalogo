@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { groupKitsByVariant, type KitVariant } from '@/lib/kits';
+import { localizarImagen } from '@/lib/externos';
 import { isLocalCatalogImage } from '@/lib/media';
 import type { ProductCardData } from '@/lib/types';
 
@@ -65,6 +66,10 @@ export function ProductGrid({ products, max }: { products: ProductCardData[]; ma
 export default function ProductCard({ p, variant }: { p: ProductCardData; variant?: KitVariant | null }) {
   const variants = groupKitsByVariant(p.images);
   const image = variant?.images[0] ?? variants[0]?.images[0] ?? p.images?.[0];
+  // La traducción a la copia local va DESPUÉS del agrupado: `groupKitsByVariant`
+  // lee la variante del nombre del archivo remoto. `isLocalCatalogImage` sigue
+  // mirando la URL original para no perder el tratamiento de miniaturas.
+  const imageSrc = localizarImagen(image);
   const label = variant && variants.length > 1 ? variant.label : null;
 
   return (
@@ -73,13 +78,13 @@ export default function ProductCard({ p, variant }: { p: ProductCardData; varian
       <div className="relative aspect-square overflow-hidden rounded-card bg-mist ring-1 ring-line transition-shadow duration-200 ease-out group-hover:shadow-[0_18px_40px_-24px_rgba(11,16,48,0.45)]">
         {/* Enlace redundante: el título de abajo es el punto de tabulación del producto. */}
         <Link href={`/producto/${p.slug}`} tabIndex={-1} aria-hidden className="absolute inset-0">
-          {image && (isLocalCatalogImage(image) ? (
+          {imageSrc && (isLocalCatalogImage(image) ? (
             // Miniatura del proveedor (~100 px): a ~1.5× (150 px) para que se vea con un
             // pixelado leve, ni diminuta ni ampliada a sangre. `next/image` la reescalaría
             // al tamaño de la tarjeta y la pixelaría más.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={image}
+              src={imageSrc}
               alt=""
               loading="lazy"
               decoding="async"
@@ -87,7 +92,7 @@ export default function ProductCard({ p, variant }: { p: ProductCardData; varian
             />
           ) : (
             <Image
-              src={image}
+              src={imageSrc}
               alt=""
               fill
               sizes="(min-width:1024px) 270px, (min-width:640px) 33vw, 50vw"

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import PageHeading from '@/components/PageHeading';
+import { localizarImagen } from '@/lib/externos';
 import { getCatalogProducts } from '@/lib/queries';
 
 export const metadata: Metadata = { title: 'Catálogo completo' };
@@ -32,20 +33,23 @@ export default async function CatalogoPage() {
             <span className="h-px flex-1 bg-line" />
           </h2>
           <ul className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 lg:grid-cols-4 print:grid-cols-4 print:gap-2">
-            {g.items.map((p) => (
-              <li key={p.id} className="break-inside-avoid">
-                <div className="relative aspect-square overflow-hidden rounded-xl bg-mist ring-1 ring-line">
-                  {p.images?.[0] && (
-                    <Image src={p.images[0]} alt={p.title} fill sizes="(min-width:1024px) 25vw, 50vw"
-                      className="object-cover" />
+            {g.items.map((p) => {
+              const portada = localizarImagen(p.images?.[0]);
+              return (
+                <li key={p.id} className="break-inside-avoid">
+                  <div className="relative aspect-square overflow-hidden rounded-xl bg-mist ring-1 ring-line">
+                    {portada && (
+                      <Image src={portada} alt={p.title} fill sizes="(min-width:1024px) 25vw, 50vw"
+                        className="object-cover" />
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs font-medium leading-snug">{p.title}</p>
+                  {p.brand && (
+                    <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">{p.brand.name}</p>
                   )}
-                </div>
-                <p className="mt-2 text-xs font-medium leading-snug">{p.title}</p>
-                {p.brand && (
-                  <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">{p.brand.name}</p>
-                )}
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </section>
       ))}
