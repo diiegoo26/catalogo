@@ -4,6 +4,10 @@ const CALZADO = new Set(['sneakers', 'chanclas']);
 const UNICA = new Set([
   'accesorios', 'relojes', 'gorras', 'bolsos', 'perfumes',
   'auriculares', 'altavoces', 'cuidado-personal', 'mandos', 'packs',
+  // `moviles` llegó después (importación Sudu, 2026-10-01) y se quedó fuera de
+  // esta lista: un iPhone ofrecía tallas de ropa. Un teléfono o una tablet no
+  // tiene talla, así que van como únicos.
+  'moviles',
 ]);
 
 /**

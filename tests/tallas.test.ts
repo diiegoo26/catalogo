@@ -14,7 +14,7 @@ describe('tallasParaCategoria', () => {
   });
 
   it('offers a single size for one-size categories', () => {
-    for (const slug of ['accesorios', 'relojes', 'gorras', 'bolsos', 'perfumes', 'auriculares', 'altavoces', 'cuidado-personal', 'mandos', 'packs']) {
+    for (const slug of ['accesorios', 'relojes', 'gorras', 'bolsos', 'perfumes', 'auriculares', 'altavoces', 'cuidado-personal', 'mandos', 'packs', 'moviles']) {
       expect(tallasParaCategoria(slug)).toEqual(['Única']);
     }
   });
